@@ -1,4 +1,6 @@
-%if 0%{?fedora} || 0%{?mageia}
+%bcond_without tests
+
+%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} >= 8
 %global use_python3 1
 %global use_python2 0
 %else
@@ -14,13 +16,13 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 1.4.14
+Version: 1.4.15
 Release: 1%{?dist}
 License: GPLv2+
 # Source is created by
 # git clone https://github.com/rpm-software-management/mock.git
 # cd mock
-# git reset --hard %{name}-%{version}
+# git reset --hard %%{name}-%%{version}
 # tito build --tgz
 Source: %{name}-%{version}.tar.gz
 URL: https://github.com/rpm-software-management/mock/
@@ -58,33 +60,36 @@ Requires: python3-requests
 Requires: python3-rpm
 Requires: python3-pyroute2
 BuildRequires: python3-devel
-#check
+%if %{with tests}
 BuildRequires: python3-pylint
+%endif
 %else
 Requires: python-ctypes
 Requires: python2-distro
-Requires: python2-jinja2
+Requires: python-jinja2
 Requires: python-six >= 1.4.0
 Requires: python-requests
 Requires: python2-pyroute2
 Requires: python >= 2.7
 Requires: rpm-python
-%endif
 BuildRequires: python2-devel
-%if 0%{?fedora} || 0%{?mageia}
+%endif
+%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} >= 8
 Requires: dnf
 Suggests: yum
 Requires: dnf-plugins-core
 Recommends: btrfs-progs
 Recommends: dnf-utils
 Suggests: qemu-user-static
-%endif
+%else
 %if 0%{?rhel} == 7
 Requires: btrfs-progs
 Requires: yum >= 2.4
 Requires: yum-utils
 %endif
-%if 0%{?fedora}
+%endif
+
+%if 0%{?fedora} || 0%{?rhel} >= 8
 BuildRequires: perl-interpreter
 %else
 BuildRequires: perl
@@ -178,8 +183,10 @@ install -d %{buildroot}/var/lib/mock
 install -d %{buildroot}/var/cache/mock
 
 %check
+%if %{with tests}
 # ignore the errors for now, just print them and hopefully somebody will fix it one day
 pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
+%endif
 
 %files
 %defattr(0644, root, mock)
@@ -230,6 +237,22 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %endif
 
 %changelog
+* Mon Apr 22 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.15-1
+- ignore weird distro.version() [RHBZ#1690374]
+- switch to string rpm's API [RHBZ#1693759]
+- FileNotFoundError is not defined in Python 2 [RHBZ#1696234]
+- Fix python2-devel build require
+- temporary do not make errors from createrepo_c fatal [GH#249]
+- allow to configure disabled DNF plugins [GH#210]
+- print warning when user is not in the mock group [GH#244]
+- implement Dynamic Build Dependencies (msuchy@redhat.com)
+- Allow mock to be built for epel 8, and without tests
+  (vanmeeuwen@kolabsys.com)
+- Add debug logging for systemd-nspawn and related args (riehecky@fnal.gov)
+- Fix mock for non-ascii paths on python2 (a.badger@gmail.com)
+- require python-jinja2 rather than python2-jinja2
+- Fix --enable-network documentation in man page (directhex@apebox.org)
+
 * Tue Feb 19 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.14-1
 - config['decompress_program'] default (praiskup@redhat.com)
 - add example for jinja templates
