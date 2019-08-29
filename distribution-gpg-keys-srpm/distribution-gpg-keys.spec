@@ -1,5 +1,5 @@
 Name:		distribution-gpg-keys
-Version:	1.31
+Version:	1.34
 Release:	0%{?dist}
 Summary:	GPG keys of various Linux distributions
 
@@ -53,6 +53,9 @@ cp -a keys/* %{buildroot}%{_datadir}/%{name}/
 %{_datadir}/%{name}/copr
 
 %changelog
+* Thu Aug 29 2019 Nico Kadel-Garcia <nkadel@gmail.com> 1.34-1
+- Update to 1.24-1
+
 * Thu May 16 2019 Miroslav Suchý <msuchy@redhat.com> 1.31-1
 - update Copr keys
 
