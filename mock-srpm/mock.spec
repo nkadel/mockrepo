@@ -1,28 +1,26 @@
-%bcond_without tests
+%bcond_with tests
 
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} >= 8
+%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} >= 7
 %global use_python3 1
 %global use_python2 0
+%global __python %{__python3}
+%global python_sitelib %{python3_sitelib}
 %else
 %global use_python3 0
 %global use_python2 1
-%endif
-
-%if %{use_python3}
-%global python_sitelib %{python3_sitelib}
-%else
+%global __python %{__python2}
 %global python_sitelib %{python2_sitelib}
 %endif
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 1.4.15
+Version: 1.4.18
 Release: 1%{?dist}
 License: GPLv2+
 # Source is created by
 # git clone https://github.com/rpm-software-management/mock.git
 # cd mock
-# git reset --hard %%{name}-%%{version}
+# git reset --hard %{name}-%{version}
 # tito build --tgz
 Source: %{name}-%{version}.tar.gz
 URL: https://github.com/rpm-software-management/mock/
@@ -40,7 +38,7 @@ Requires: mock-core-configs >= 27.4
 Requires: pyliblzma
 %endif
 Requires: systemd
-%if 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} >= 8
 Requires: systemd-container
 %endif
 Requires: coreutils
@@ -52,16 +50,15 @@ Suggests: iproute2
 %endif
 BuildRequires: bash-completion
 %if %{use_python3}
-Requires: python3
-Requires: python3-distro
-Requires: python3-jinja2
-Requires: python3-six >= 1.4.0
-Requires: python3-requests
-Requires: python3-rpm
-Requires: python3-pyroute2
-BuildRequires: python3-devel
+Requires: python%{python3_pkgversion}-distro
+Requires: python%{python3_pkgversion}-jinja2
+Requires: python%{python3_pkgversion}-six >= 1.4.0
+Requires: python%{python3_pkgversion}-requests
+Requires: python%{python3_pkgversion}-rpm
+Requires: python%{python3_pkgversion}-pyroute2
+BuildRequires: python%{python3_pkgversion}-devel
 %if %{with tests}
-BuildRequires: python3-pylint
+BuildRequires: python%{python3_pkgversion}-pylint
 %endif
 %else
 Requires: python-ctypes
@@ -81,6 +78,7 @@ Requires: dnf-plugins-core
 Recommends: btrfs-progs
 Recommends: dnf-utils
 Suggests: qemu-user-static
+Suggests: procenv
 %else
 %if 0%{?rhel} == 7
 Requires: btrfs-progs
@@ -132,20 +130,18 @@ of the buildroot.
 
 %prep
 %setup -q
-%if %{use_python2}
-for file in py/mock.py py/mockchain.py; do
-  sed -i 1"s|#!/usr/bin/python3 |#!/usr/bin/python |" $file
+for file in py/mock.py py/mockchain.py py/mock-parse-buildlog.py; do
+  sed -i 1"s|#!/usr/bin/python3 |#!%{__python} |" $file
 done
-%endif
 
 %build
-for i in py/mock.py py/mockchain.py; do
+for i in py/mock.py py/mockchain.py py/mock-parse-buildlog.py; do
     perl -p -i -e 's|^__VERSION__\s*=.*|__VERSION__="%{version}"|' $i
     perl -p -i -e 's|^SYSCONFDIR\s*=.*|SYSCONFDIR="%{_sysconfdir}"|' $i
     perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python_sitelib}"|' $i
     perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python_sitelib}/mockbuild"|' $i
 done
-for i in docs/mockchain.1 docs/mock.1; do
+for i in docs/mockchain.1 docs/mock.1 docs/mock-parse-buildlog.1; do
     perl -p -i -e 's|\@VERSION\@|%{version}"|' $i
 done
 
@@ -153,6 +149,7 @@ done
 install -d %{buildroot}%{_bindir}
 install -d %{buildroot}%{_libexecdir}/mock
 install py/mockchain.py %{buildroot}%{_bindir}/mockchain
+install py/mock-parse-buildlog.py %{buildroot}%{_bindir}/mock-parse-buildlog
 install py/mock.py %{buildroot}%{_libexecdir}/mock/mock
 ln -s consolehelper %{buildroot}%{_bindir}/mock
 install create_default_route_in_container.sh %{buildroot}%{_libexecdir}/mock/
@@ -169,6 +166,7 @@ cp -a etc/consolehelper/mock %{buildroot}%{_sysconfdir}/security/console.apps/%{
 install -d %{buildroot}%{_datadir}/bash-completion/completions/
 cp -a etc/bash_completion.d/* %{buildroot}%{_datadir}/bash-completion/completions/
 ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mockchain
+ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildlog
 
 install -d %{buildroot}%{_sysconfdir}/pki/mock
 cp -a etc/pki/* %{buildroot}%{_sysconfdir}/pki/mock/
@@ -177,7 +175,9 @@ install -d %{buildroot}%{python_sitelib}/
 cp -a py/mockbuild %{buildroot}%{python_sitelib}/
 
 install -d %{buildroot}%{_mandir}/man1
-cp -a docs/mockchain.1 docs/mock.1 %{buildroot}%{_mandir}/man1/
+cp -a docs/mockchain.1 docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
+install -d %{buildroot}%{_datadir}/cheat
+cp -a docs/mock.cheat %{buildroot}%{_datadir}/cheat/mock
 
 install -d %{buildroot}/var/lib/mock
 install -d %{buildroot}/var/cache/mock
@@ -193,12 +193,14 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %config(noreplace) %{_sysconfdir}/mock/site-defaults.cfg
 %{_datadir}/bash-completion/completions/mock
 %{_datadir}/bash-completion/completions/mockchain
+%{_datadir}/bash-completion/completions/mock-parse-buildlog
 
 %defattr(-, root, root)
 
 # executables
 %{_bindir}/mock
 %{_bindir}/mockchain
+%{_bindir}/mock-parse-buildlog
 %{_libexecdir}/mock
 
 # python stuff
@@ -218,6 +220,8 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 # docs
 %{_mandir}/man1/mock.1*
 %{_mandir}/man1/mockchain.1*
+%{_mandir}/man1/mock-parse-buildlog.1*
+%{_datadir}/cheat/mock
 
 # cache & build dirs
 %defattr(0775, root, mock, 02775)
@@ -237,6 +241,61 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %endif
 
 %changelog
+* Tue Aug 27 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.18-1
+- use forcearch even when --forcearch is not specified
+  (turecek.dominik@gmail.com)
+- requires systemd-container on rhel8 [RHBZ#1744538]
+- mock: only make /sys and /proc mounts rprivate (praiskup@redhat.com)
+- Add Red Hat subscription-manager support (praiskup@redhat.com)
+- Turn jinja ON a bit later, once configs are loaded (praiskup@redhat.com)
+- bootstrap-chroot: always explicitly install shadow-utils
+  (praiskup@redhat.com)
+- Add procenv plugin for more detailed buildtime information
+  (riehecky@fnal.gov)
+- enable selinux plugin for nspawn [RHBZ#1740421]
+- Added signals handling by calling orphansKill for signals: SIGTERM, SIGPIPE
+  and SIGHUP (janbuchmaier@seznam.cz)
+- Mention user configuration file in a man page (jkonecny@redhat.com)
+
+* Thu Aug 08 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.17-1
+- change of exit code during transition from mockchain to mock --chain
+- support run in Fedora Toolbox (otaylor@fishsoup.net)
+- add cheat sheet
+- Adding tool for parsing build.log (sisi.chlupova@gmail.com)
+- load secondary groups [RHBZ#1264005]
+- pass --allowerasing by default to DNF [GH#251]
+- make include() functional for --chain [GH#263]
+- Removing buildstderr from log - configurable via 
+  _mock_stderr_line_prefix (sisi.chlupova@gmail.com)
+- Fixup: Use rpm -qa --root instead of running rpm -qa in chroot
+  (miro@hroncok.cz)
+- DynamicBuildrequires: Detect when no new packages were installed
+  (miro@hroncok.cz)
+- Allow more loop devices (sisi.chlupova@gmail.com)
+- Fix binary locations in /bin for split-usr setups (bero@lindev.ch)
+- describe behaviour of resultdir together with --chain [GH#267]
+- repeat dynamic requires if needed [GH#276]
+- Fix compatibility with pre-4.15 RPM versions with DynamicBuildRequires
+  (i.gnatenko.brain@gmail.com)
+- Enable dynamic BuildRequires by default (i.gnatenko.brain@gmail.com)
+- bootstrap: independent network configuration (praiskup@redhat.com)
+- Update the man page about ~/.config/mock/FOO.cfg (miro@hroncok.cz)
+- explicitely convert releasever to string [GH#270]
+- grant anyone access to bind-mounted /etc/resolv.conf (praiskup@redhat.com)
+- -r FOO will try to read first ~/.mock/FOO.cfg if exists
+- enhance man page of mock about --chain
+- bash completion for --chain
+- respect use_host_resolv config even with use_nspawn (praiskup@redhat.com)
+- Fix crash on non-ascii dnf log messages (bkorren@redhat.com)
+- add deprecation warning to mockchain
+- replace mockchain with `mock --chain` command (necas.marty@gmail.com)
+- switch to python3 on el7 (msuchy@redhat.com)
+
+* Wed May 22 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.16-1
+- switch to python3 on el7
+- respect use_host_resolv config even with use_nspawn (praiskup@redhat.com)
+- Fix crash on non-ascii dnf log messages (bkorren@redhat.com)
+
 * Mon Apr 22 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.15-1
 - ignore weird distro.version() [RHBZ#1690374]
 - switch to string rpm's API [RHBZ#1693759]
