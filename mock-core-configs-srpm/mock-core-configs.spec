@@ -58,11 +58,12 @@ Config files which allow you to create chroots for:
 %install
 mkdir -p %{buildroot}%{_sysconfdir}/mock/eol
 cp -a mock-core-configs/etc/mock/*.cfg %{buildroot}%{_sysconfdir}/mock/
+cp -a mock-core-configs/etc/mock/*.tpl %{buildroot}%{_sysconfdir}/mock/
 cp -a mock-core-configs/etc/mock/eol/*cfg %{buildroot}%{_sysconfdir}/mock/eol/
 
 # generate files section with config - there is many of them
 echo "%defattr(0644, root, mock)" > %{name}.cfgs
-find %{buildroot}%{_sysconfdir}/mock -name "*.cfg" \
+find %{buildroot}%{_sysconfdir}/mock -name "*.cfg" -o -name "*.tpl"  \
     | sed -e "s|^%{buildroot}|%%config(noreplace) |" >> %{name}.cfgs
 # just for %%ghosting purposes
 ln -s fedora-rawhide-x86_64.cfg %{buildroot}%{_sysconfdir}/mock/default.cfg
@@ -124,6 +125,9 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Thu Aug 29 2019 Nico Kadel-Garcia - 30.2-0
+- Include .tpl files
+
 * Fri Mar 01 2019 Miroslav Suchý <msuchy@redhat.com> 30.2-1
 - disable modular repos
 - Add openSUSE Leap AArch64 configs (ngompa13@gmail.com)
