@@ -2,7 +2,7 @@
 %global mockgid 135
 
 Name:		mock-core-configs
-Version:	30.2
+Version:	31.2
 #Release:	1%%{?dist}
 Release:	0%{?dist}
 Summary:	Mock core config files basic chroots
@@ -14,7 +14,7 @@ URL:		https://github.com/rpm-software-management/mock/
 # cd mock/mock-core-configs
 # git reset --hard %%{name}-%%{version}
 # tito build --tgz
-Source:		https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
+Source:		https://github.com/rpm-software-management/mock/archive/%{name}-%{version}-1/%{name}-%{version}.tar.gz
 BuildArch:	noarch
 
 # distribution-gpg-keys contains GPG keys used by mock configs
@@ -46,7 +46,9 @@ Config files which allow you to create chroots for:
  * OpenSuse Tumbleweed and Leap
 
 %prep
-%setup -q
+# tarball uses -1 suffix of content
+#%setup -q -n mock-mock-core-configs-%{version}-1
+%setup -q -n %{name}-%{version}-1
 
 
 %build
@@ -55,8 +57,8 @@ Config files which allow you to create chroots for:
 
 %install
 mkdir -p %{buildroot}%{_sysconfdir}/mock/eol
-cp -a etc/mock/*.cfg %{buildroot}%{_sysconfdir}/mock
-cp -a etc/mock/eol/*cfg %{buildroot}%{_sysconfdir}/mock/eol
+cp -a mock-core-configs/etc/mock/*.cfg %{buildroot}%{_sysconfdir}/mock/
+cp -a mock-core-configs/etc/mock/eol/*cfg %{buildroot}%{_sysconfdir}/mock/eol/
 
 # generate files section with config - there is many of them
 echo "%defattr(0644, root, mock)" > %{name}.cfgs
@@ -116,7 +118,7 @@ fi
 
 
 %files -f %{name}.cfgs
-%license COPYING
+%license mock-core-configs/COPYING
 %dir  %{_sysconfdir}/mock
 %dir  %{_sysconfdir}/mock/eol
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
