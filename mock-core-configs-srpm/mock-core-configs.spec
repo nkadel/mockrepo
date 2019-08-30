@@ -22,19 +22,19 @@ Requires:	distribution-gpg-keys >= 1.29
 
 Requires(pre):	shadow-utils
 Requires(post): coreutils
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} > 7
 # to detect correct default.cfg
-Requires(post):	python3-dnf
-Requires(post):	python3-hawkey
-Requires(post):	python3
-Requires(post):	system-release
-Requires(post):	sed
-%else
+%if 0%{?rhel} > 0 && 0%{?rhel} < 8
 Requires(post):	/etc/os-release
 Requires(post):	python2
 Requires(post):	python2-dnf
 Requires(post):	python2-hawkey
 Requires(post):	yum
+%else
+Requires(post):	python3-dnf
+Requires(post):	python3-hawkey
+Requires(post):	python3
+Requires(post):	system-release
+Requires(post):	sed
 %endif
 
 %description
@@ -52,7 +52,15 @@ Config files which allow you to create chroots for:
 
 
 %build
-# nothing to do here
+%if 0%{?rhel} > 0 && 0%{?rhel} < 8
+# Required for dnf enabled ocnfigs on yum based hosts
+# config_opts['use_bootstrap_container'] = True
+
+grep -rl "config_opts\['package_manager'\] = 'dnf'" mock-core-configs | \
+    while read name; do
+    sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap on dnf host for %%rhel %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\n\n/g" $name
+done
+%endif
 
 
 %install
