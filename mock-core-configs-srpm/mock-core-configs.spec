@@ -26,15 +26,15 @@ Requires(post): coreutils
 # to detect correct default.cfg
 Requires(post):	python3-dnf
 Requires(post):	python3-hawkey
-Requires(post):	system-release
 Requires(post):	python3
+Requires(post):	system-release
 Requires(post):	sed
-%endif
-%if 0%{?rhel} && 0%{?rhel} <= 7
-# to detect correct default.cfg
-Requires(post):	python
-Requires(post):	yum
+%else
 Requires(post):	/etc/os-release
+Requires(post):	python2
+Requires(post):	python2-dnf
+Requires(post):	python2-hawkey
+Requires(post):	yum
 %endif
 
 %description
