@@ -80,11 +80,9 @@ Recommends: dnf-utils
 Suggests: qemu-user-static
 Suggests: procenv
 %else
-%if 0%{?rhel} == 7
 Requires: btrfs-progs
 Requires: yum >= 2.4
 Requires: yum-utils
-%endif
 %endif
 
 %if 0%{?fedora} || 0%{?rhel} >= 8
@@ -243,6 +241,7 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %changelog
 * Sat Aug 31 2019 Nico Kadel-Garcia <nkadel@gmail.com>
 - Disable obsolete scm and lvm
+- Discard rhel version checks for yum
 
 * Tue Aug 27 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.18-1
 - use forcearch even when --forcearch is not specified
