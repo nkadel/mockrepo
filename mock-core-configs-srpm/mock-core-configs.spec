@@ -19,6 +19,8 @@ BuildArch:	noarch
 
 # distribution-gpg-keys contains GPG keys used by mock configs
 Requires:	distribution-gpg-keys >= 1.29
+# mock before 1.4.18 does not support 'protected_packages'
+Requires:	mock >= 1.4.18
 
 Requires(pre):	shadow-utils
 Requires(post): coreutils
@@ -47,8 +49,7 @@ Config files which allow you to create chroots for:
 
 %prep
 # tarball uses -1 suffix of content
-#%setup -q -n mock-mock-core-configs-%{version}-1
-%setup -q -n %{name}-%{version}-1
+%setup -q -n mock-mock-core-configs-%{version}-1
 
 
 %build
@@ -133,8 +134,9 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
-* Thu Aug 29 2019 Nico Kadel-Garcia - 30.2-0
+* Thu Aug 29 2019 Nico Kadel-Garcia - 31.2-1
 - Include .tpl files
+- Requies mock > 1.4.18 to support protected_packages setting
 
 * Fri Mar 01 2019 Miroslav Suchý <msuchy@redhat.com> 30.2-1
 - disable modular repos
@@ -216,5 +218,3 @@ fi
 
 * Thu Sep 07 2017 Miroslav Suchý <msuchy@redhat.com> 27.1-1
 - Split from Mock package.
-
-
