@@ -6,12 +6,11 @@
 LANG=C
 
 #
-MOCKS+=fedora-29-x86_64
-MOCKS+=epel-7-x86_64
-#MOCKS+=samba4repo-8-x86_64
+# pyliblzma only needed for python 2 mock
+MOCKS+=mockrepo-7-x86_64
 
-#REPOBASEDIR=/var/www/linux/samba4repo
-REPOBASEDIR:=`/bin/pwd`/../samba4repo
+#REPOBASEDIR=/var/www/linux/mockrepo
+REPOBASEDIR:=`/bin/pwd`/../mockrepo
 
 SPEC := `ls *.spec | head -1`
 
@@ -52,8 +51,8 @@ install:: $(MOCKS)
 	    case $$repo in \
 		*-7-x86_64) yumrelease=el/7; yumarch=x86_64; ;; \
 		*-8-x86_64) yumrelease=el/8; yumarch=x86_64; ;; \
-		*-29-x86_64) yumrelease=fedora/29; yumarch=x86_64; ;; \
-		*-f29-x86_64) yumrelease=fedora/29; yumarch=x86_64; ;; \
+		*-30-x86_64) yumrelease=fedora/30; yumarch=x86_64; ;; \
+		*-f30-x86_64) yumrelease=fedora/30; yumarch=x86_64; ;; \
 		*) echo "Unrecognized release for $$repo, exiting" >&2; exit 1; ;; \
 	    esac; \
 	    rpmdir=$(REPOBASEDIR)/$$yumrelease/$$yumarch; \

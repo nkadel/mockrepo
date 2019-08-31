@@ -13,8 +13,12 @@ URL:        https://launchpad.net/pyliblzma
 Source0:    http://pypi.python.org/packages/source/p/pyliblzma/%{name}-%{version}.tar.bz2
 Patch0:     no-script-liblzma.patch
 
-BuildRequires:    xz-devel python2-setuptools python2-devel
-BuildRequires:    python2-test gcc
+BuildRequires:    gcc
+BuildRequires:    xz-devel
+BuildRequires:    python2-devel
+BuildRequires:    python2-setuptools
+BuildRequires:    python2-test
+BuildRequires:    xz-devel
 
 %description
 PylibLZMA provides a python interface for the liblzma library
