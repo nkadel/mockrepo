@@ -31,16 +31,16 @@ BuildRequires:  python2-pytest
 
 Python 2 version.
 
-%package -n python3-%{modulename}
+%package -n python%{python3_pkgversion}-%{modulename}
 Summary:        %{summary}
-%{?python_provide:%python_provide python3-%{modulename}}
-Requires:       python3-pytest
-BuildRequires:  python3-devel
-BuildRequires:  python3-setuptools
-BuildRequires:  python3-setuptools_scm
-BuildRequires:  python3-pytest
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{modulename}}
+Requires:       python%{python3_pkgversion}-pytest
+BuildRequires:  python%{python3_pkgversion}-devel
+BuildRequires:  python%{python3_pkgversion}-setuptools
+BuildRequires:  python%{python3_pkgversion}-setuptools_scm
+BuildRequires:  python%{python3_pkgversion}-pytest
 
-%description -n python3-%{modulename} %{_description}
+%description -n python%{python3_pkgversion}-%{modulename} %{_description}
 
 Python 3 version.
 
@@ -65,7 +65,7 @@ Python 3 version.
 %{python2_sitelib}/ptr.py*
 %{python2_sitelib}/%{_modulename}-%{version}-py%{python2_version}.egg-info/
 
-%files -n python3-%{modulename}
+%files -n python%{python3_pkgversion}-%{modulename}
 %doc README.rst
 %license LICENSE
 %{python3_sitelib}/ptr.py
