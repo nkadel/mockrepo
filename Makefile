@@ -14,10 +14,6 @@ MOCKPKGS+=distribution-gpg-keys-srpm
 MOCKPKGS+=mock-core-configs-srpm
 MOCKPKGS+=mock-srpm
 
-# pyliblzma dependent on python2-test, only needed for python 2 mock
-#MOCKPKGS+=python2-test-srpm
-#MOCKPKGS+=pyliblzma-srpm
-
 REPOS+=mockrepo/el/7
 REPOS+=mockrepo/el/8
 REPOS+=mockrepo/fedora/30
