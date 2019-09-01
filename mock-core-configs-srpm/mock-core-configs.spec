@@ -54,12 +54,18 @@ Config files which allow you to create chroots for:
 
 %build
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
+
 # Required for dnf enabled ocnfigs on yum based hosts
 # config_opts['use_bootstrap_container'] = True
-
 grep -rl "config_opts\['package_manager'\] = 'dnf'" mock-core-configs | \
     while read name; do
     sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap on dnf host for %%rhel %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\n\n/g" $name
+done
+
+# --diaablerepo whatever* picks up local files, use --disablrepo=
+grep -rl "--disablerepo '" mock-core-configs | \
+    while read name; do
+    sed -i.bak "s/--disablerepo /--disablerepo=/g' $name
 done
 %endif
 
@@ -137,6 +143,7 @@ fi
 * Thu Aug 29 2019 Nico Kadel-Garcia - 31.2-1
 - Include .tpl files
 - Requies mock > 1.4.18 to support protected_packages setting
+- Clean up use of --disablrepo
 
 * Fri Mar 01 2019 Miroslav Suchý <msuchy@redhat.com> 30.2-1
 - disable modular repos
