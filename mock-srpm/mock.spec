@@ -228,20 +228,15 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 
 %files scm
 %{python_sitelib}/mockbuild/scm.py*
-#%if %{use_python3}
-#%{python3_sitelib}/mockbuild/__pycache__/scm.*.py*
-#%endif
 
 %files lvm
 %{python_sitelib}/mockbuild/plugins/lvm_root.*
-#%if %{use_python3}
-#%{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
-#%endif
 
 %changelog
 * Sat Aug 31 2019 Nico Kadel-Garcia <nkadel@gmail.com>
 - Disable obsolete scm and lvm
 - Discard rhel version checks for yum
+- Discard obsolete __pycache__ entries
 
 * Tue Aug 27 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.18-1
 - use forcearch even when --forcearch is not specified
