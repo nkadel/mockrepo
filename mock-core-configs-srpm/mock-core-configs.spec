@@ -20,7 +20,7 @@ BuildArch:	noarch
 # distribution-gpg-keys contains GPG keys used by mock configs
 Requires:	distribution-gpg-keys >= 1.29
 # mock before 1.4.18 does not support 'protected_packages'
-Requires:	mock >= 1.4.18
+Conflicts:	mock < 1.4.18
 
 Requires(pre):	shadow-utils
 Requires(post): coreutils
@@ -65,7 +65,7 @@ done
 # --diaablerepo whatever* picks up local files, use --disablrepo=
 grep -rl "--disablerepo '" mock-core-configs | \
     while read name; do
-    sed -i.bak "s/--disablerepo /--disablerepo=/g' $name
+    sed -i.bak "s/--disablerepo /--disablerepo=/g" $name
 done
 %endif
 
