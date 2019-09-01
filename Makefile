@@ -26,6 +26,7 @@ CFGS+=mockrepo-8-x86_64.cfg
 CFGS+=mockrepo-f30-x86_64.cfg
 
 # Link from /etc/mock
+MOCKCFGS+=epel-6-x86_64.cfg
 MOCKCFGS+=epel-7-x86_64.cfg
 MOCKCFGS+=epel-8-x86_64.cfg
 MOCKCFGS+=fedora-30-x86_64.cfg
