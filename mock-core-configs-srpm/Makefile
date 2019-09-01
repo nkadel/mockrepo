@@ -7,6 +7,7 @@ LANG=C
 
 #
 MOCKS+=fedora-30-x86_64
+MOCKS+=epel-8-x86_64
 MOCKS+=epel-7-x86_64
 
 #REPOBASEDIR=/var/www/linux/mockrepo
