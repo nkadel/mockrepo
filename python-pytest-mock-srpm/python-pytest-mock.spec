@@ -34,16 +34,16 @@ Summary:        %{summary}
 %{desc}
 
 
-%package -n     python3-%{pypi_name}
+%package -n     python%{python3_pkgversion}-%{pypi_name}
 Summary:        %{summary}
 BuildArch:      noarch
-BuildRequires:  python3-devel
-BuildRequires:  python3-pytest >= 2.7
-BuildRequires:  python3-setuptools_scm
-Requires:       python3-pytest >= 2.7
-%{?python_provide:%python_provide python3-%{pypi_name}}
+BuildRequires:  python%{python3_pkgversion}-devel
+BuildRequires:  python%{python3_pkgversion}-pytest >= 2.7
+BuildRequires:  python%{python3_pkgversion}-setuptools_scm
+Requires:       python%{python3_pkgversion}-pytest >= 2.7
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{pypi_name}}
 
-%description -n python3-%{pypi_name}
+%description -n python%{python3_pkgversion}-%{pypi_name}
 %{desc}
 
 
@@ -78,7 +78,7 @@ PYTHONPATH="$(pwd)" py.test-%{python3_version} test_pytest_mock.py
 %{python2_sitelib}/_pytest_mock_version.py*
 
 
-%files -n python3-%{pypi_name}
+%files -n python%{python3_pkgversion}-%{pypi_name}
 %doc README.rst
 %license LICENSE
 %{python3_sitelib}/%{file_name}-%{version}-py%{python3_version}.egg-info/

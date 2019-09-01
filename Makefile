@@ -13,42 +13,36 @@ REPOBASE=file://$(PWD)
 MOCKPKGS+=distribution-gpg-keys-srpm
 MOCKPKGS+=mock-core-configs-srpm
 MOCKPKGS+=mock-srpm
-MOCKPKGS+=pyliblzma-srpm
-MOCKPKGS+=pylint-srpm
-MOCKPKGS+=pytest-srpm
-MOCKPKGS+=python3-mockbuild-srpm
-MOCKPKGS+=python-isort-srpm
-MOCKPKGS+=python-pytest-mock-srpm
-MOCKPKGS+=python-pytest-runner-srpm
 
+# pyliblzma dependent on python2-test, only needed for python 2 mock
+#MOCKPKGS+=python2-test-srpm
+#MOCKPKGS+=pyliblzma-srpm
 
 REPOS+=mockrepo/el/7
-#REPOS+=mockrepo/el/8
+REPOS+=mockrepo/el/8
 REPOS+=mockrepo/fedora/30
 
 REPODIRS := $(patsubst %,%/x86_64/repodata,$(REPOS)) $(patsubst %,%/SRPMS/repodata,$(REPOS))
 
 # No local dependencies at build time
 CFGS+=mockrepo-7-x86_64.cfg
-#CFGS+=mockrepo-8-x86_64.cfg
+CFGS+=mockrepo-8-x86_64.cfg
 CFGS+=mockrepo-f30-x86_64.cfg
 
 # Link from /etc/mock
 MOCKCFGS+=epel-7-x86_64.cfg
-#MOCKCFGS+=epel-8-x86_64.cfg
+MOCKCFGS+=epel-8-x86_64.cfg
 MOCKCFGS+=fedora-30-x86_64.cfg
 
 all:: $(CFGS) $(MOCKCFGS)
 all:: $(REPODIRS)
 all:: $(MOCKPKGS)
 
-all getsrc install clean:: FORCE
-	@for name in $(MOCKPKGS); do \
-	     (cd $$name; $(MAKE) $(MFLAGS) $@); \
-	done  
+.PHONY: all getsrc install clean build
+all getsrc install::
 
 # Build for locacl OS
-build:: FORCE
+build::
 	@for name in $(MOCKPKGS); do \
 	     (cd $$name; $(MAKE) $(MFLAGS) $@); \
 	done
@@ -56,8 +50,13 @@ build:: FORCE
 # Dependencies
 python-py2pack-srpm:: python-metaextract-srpm
 
+pyliblzma-srpm:: python2-test-srpm
+
+#python-setuptools_scm:: python-pytest-mock-srpm
+
 # Actually build in directories
-$(MOCKPKGS):: FORCE
+.PHONY: $(MOCKPKGS)
+$(MOCKPKGS)::
 	(cd $@; $(MAKE) $(MLAGS) install)
 
 repos: $(REPOS) $(REPODIRS)
@@ -155,8 +154,8 @@ clean::
 	rm -f *.cfg
 	rm -f *.out
 	@for name in $(MOCKPKGS); do \
-	    $(MAKE) -C $$name clean; \
-	done
+	     (cd $$name; $(MAKE) $(MFLAGS) $@); \
+	done  
 
 distclean:
 	rm -rf $(REPOS)
@@ -164,4 +163,3 @@ distclean:
 maintainer-clean:
 	rm -rf $(MOCKPKGS)
 
-FORCE::
