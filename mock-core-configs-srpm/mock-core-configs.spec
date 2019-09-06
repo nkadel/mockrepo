@@ -18,7 +18,7 @@ Source:		https://github.com/rpm-software-management/mock/archive/%{name}-%{versi
 BuildArch:	noarch
 
 # distribution-gpg-keys contains GPG keys used by mock configs
-Requires:	distribution-gpg-keys >= 1.29
+Requires:	distribution-gpg-keys >= 1.34
 # mock before 1.4.18 does not support 'protected_packages'
 Conflicts:	mock < 1.4.18
 
