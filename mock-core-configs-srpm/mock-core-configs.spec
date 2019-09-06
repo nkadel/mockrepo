@@ -1,42 +1,41 @@
 # mock group id allocate for Fedora
 %global mockgid 135
 
-Name:		mock-core-configs
-Version:	31.2
-#Release:	1%%{?dist}
-Release:	0%{?dist}
-Summary:	Mock core config files basic chroots
+Name:       mock-core-configs
+Version:    31.2
+Release:    1%{?dist}
+Summary:    Mock core config files basic chroots
 
-License:	GPLv2+
-URL:		https://github.com/rpm-software-management/mock/
+License:    GPLv2+
+URL:        https://github.com/rpm-software-management/mock/
 # Source is created by
 # git clone https://github.com/rpm-software-management/mock.git
 # cd mock/mock-core-configs
-# git reset --hard %%{name}-%%{version}
+# git reset --hard %{name}-%{version}
 # tito build --tgz
-Source:		https://github.com/rpm-software-management/mock/archive/%{name}-%{version}-1/%{name}-%{version}.tar.gz
-BuildArch:	noarch
+Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
+BuildArch:  noarch
 
 # distribution-gpg-keys contains GPG keys used by mock configs
-Requires:	distribution-gpg-keys >= 1.34
+Requires:   distribution-gpg-keys >= 1.29
 # mock before 1.4.18 does not support 'protected_packages'
-Conflicts:	mock < 1.4.18
+Conflicts:  mock < 1.4.18
 
-Requires(pre):	shadow-utils
+Requires(pre):  shadow-utils
 Requires(post): coreutils
 # to detect correct default.cfg
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
-Requires(post):	/etc/os-release
-Requires(post):	python2
-Requires(post):	python2-dnf
-Requires(post):	python2-hawkey
-Requires(post):	yum
+Requires(post): /etc/os-release
+Requires(post): python2
+Requires(post): python2-dnf
+Requires(post): python2-hawkey
+Requires(post): yum
 %else
-Requires(post):	python3-dnf
-Requires(post):	python3-hawkey
-Requires(post):	python3
-Requires(post):	system-release
-Requires(post):	sed
+Requires(post): python3-dnf
+Requires(post): python3-hawkey
+Requires(post): python3
+Requires(post): system-release
+Requires(post): sed
 %endif
 
 %description
@@ -48,8 +47,7 @@ Config files which allow you to create chroots for:
  * OpenSuse Tumbleweed and Leap
 
 %prep
-# tarball uses -1 suffix of content
-%setup -q -n mock-mock-core-configs-%{version}-1
+%setup -q
 
 
 %build
@@ -65,14 +63,16 @@ done
 
 
 %install
+mkdir -p %{buildroot}%{_sysusersdir}
+
 mkdir -p %{buildroot}%{_sysconfdir}/mock/eol
-cp -a mock-core-configs/etc/mock/*.cfg %{buildroot}%{_sysconfdir}/mock/
-cp -a mock-core-configs/etc/mock/*.tpl %{buildroot}%{_sysconfdir}/mock/
-cp -a mock-core-configs/etc/mock/eol/*cfg %{buildroot}%{_sysconfdir}/mock/eol/
+cp -a etc/mock/*.cfg %{buildroot}%{_sysconfdir}/mock
+cp -a etc/mock/*.tpl %{buildroot}%{_sysconfdir}/mock
+cp -a etc/mock/eol/*cfg %{buildroot}%{_sysconfdir}/mock/eol
 
 # generate files section with config - there is many of them
 echo "%defattr(0644, root, mock)" > %{name}.cfgs
-find %{buildroot}%{_sysconfdir}/mock -name "*.cfg" -o -name "*.tpl"  \
+find %{buildroot}%{_sysconfdir}/mock -name "*.cfg" -o -name '*.tpl'  \
     | sed -e "s|^%{buildroot}|%%config(noreplace) |" >> %{name}.cfgs
 # just for %%ghosting purposes
 ln -s fedora-rawhide-x86_64.cfg %{buildroot}%{_sysconfdir}/mock/default.cfg
@@ -128,7 +128,7 @@ fi
 
 
 %files -f %{name}.cfgs
-%license mock-core-configs/COPYING
+%license COPYING
 %dir  %{_sysconfdir}/mock
 %dir  %{_sysconfdir}/mock/eol
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
@@ -138,6 +138,40 @@ fi
 - Include .tpl files
 - Requies mock > 1.4.18 to support protected_packages setting
 - Clean up use of --disablrepo
+
+* Mon Aug 26 2019 Miroslav Suchý <msuchy@redhat.com> 31.2-1
+- revert sysusers setting [RHBZ#1740545]
+- add rhelepel-8 configs (praiskup@redhat.com)
+- add RHEL 7/8 (praiskup@redhat.com)
+
+* Mon Aug 19 2019 Miroslav Suchý <msuchy@redhat.com> 31.1-1
+- add fedora 31 configs and rawhide is now 32
+- Add local-source repo definition to Fedora Rawhide (miro@hroncok.cz)
+
+* Mon Aug 19 2019 Miroslav Suchý <msuchy@redhat.com>
+- add fedora 31 configs and rawhide is now 32
+- Add local-source repo definition to Fedora Rawhide (miro@hroncok.cz)
+
+* Thu Aug 08 2019 Miroslav Suchý <msuchy@redhat.com> 30.5-1
+- disable updates-modulare repos for now
+- buildrequire systemd-srpm-macros to get _sysusersdir
+- removed info about metadata expire (khoidinhtrinh@gmail.com)
+- added updates-modular to 29 and 30 (khoidinhtrinh@gmail.com)
+- replace groupadd using sysusers.d
+- core-configs: epel-7 profiles to use mirrorlists (praiskup@redhat.com)
+- EOL Fedora 28
+- do not protect packages in chroot [GH#286]
+- Fix value for dist for OpenMandriva 4.0 configs (ngompa13@gmail.com)
+- Add initial OpenMandriva distribution targets (ngompa13@gmail.com)
+
+* Thu Jun 06 2019 Miroslav Suchý <msuchy@redhat.com> 30.4-1
+- Add 'fastestmirror=1' to Mageia mock configs (ngompa13@gmail.com)
+- bootstrap: disable sclo* repos for epel --installroot (praiskup@redhat.com)
+- drop Fedora ppc64 configs [RHBZ#1714489]
+
+* Thu May 16 2019 Miroslav Suchý <msuchy@redhat.com> 30.3-1
+- Allow AArch64 systems to build 32-bit ARM packages (ngompa13@gmail.com)
+- Fix openSUSE Tumbleweed DistTag definition (ngompa13@gmail.com)
 
 * Fri Mar 01 2019 Miroslav Suchý <msuchy@redhat.com> 30.2-1
 - disable modular repos
