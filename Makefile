@@ -36,6 +36,9 @@ all:: $(MOCKPKGS)
 
 .PHONY: all getsrc install clean build
 all getsrc install::
+	@for name in $(MOCKPKGS); do \
+	     (cd $$name; $(MAKE) $(MFLAGS) $@); \
+	done
 
 # Build for locacl OS
 build::
