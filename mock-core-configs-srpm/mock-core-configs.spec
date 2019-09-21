@@ -2,7 +2,7 @@
 %global mockgid 135
 
 Name:       mock-core-configs
-Version:    31.2
+Version:    31.3
 Release:    1%{?dist}
 Summary:    Mock core config files basic chroots
 
@@ -11,7 +11,7 @@ URL:        https://github.com/rpm-software-management/mock/
 # Source is created by
 # git clone https://github.com/rpm-software-management/mock.git
 # cd mock/mock-core-configs
-# git reset --hard %{name}-%{version}
+# git reset --hard %%{name}-%%{version}
 # tito build --tgz
 Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
 BuildArch:  noarch
@@ -21,21 +21,18 @@ Requires:   distribution-gpg-keys >= 1.29
 # mock before 1.4.18 does not support 'protected_packages'
 Conflicts:  mock < 1.4.18
 
-Requires(pre):  shadow-utils
 Requires(post): coreutils
 # to detect correct default.cfg
-%if 0%{?rhel} > 0 && 0%{?rhel} < 8
-Requires(post): /etc/os-release
-Requires(post): python2
-Requires(post): python2-dnf
-Requires(post): python2-hawkey
-Requires(post): yum
-%else
-Requires(post): python3-dnf
-Requires(post): python3-hawkey
-Requires(post): python3
+Requires(post): python%{python3_pkgversion}-dnf
+Requires(post): python%{python3_pkgversion}-hawkey
 Requires(post): system-release
+Requires(post): python%{python3_pkgversion}
 Requires(post): sed
+Requires(pre):  shadow-utils
+%if 0%{?rhel} && 0%{?rhel} <= 7
+# to detect correct default.cfg
+Requires(post): yum
+Requires(post): /etc/os-release
 %endif
 
 %description
@@ -61,18 +58,18 @@ grep -rl "config_opts\['package_manager'\] = 'dnf'" mock-core-configs | \
 done
 %endif # rhel && rhel < 8
 
-
 %install
 mkdir -p %{buildroot}%{_sysusersdir}
 
 mkdir -p %{buildroot}%{_sysconfdir}/mock/eol
+mkdir -p %{buildroot}%{_sysconfdir}/mock/templates
 cp -a etc/mock/*.cfg %{buildroot}%{_sysconfdir}/mock
-cp -a etc/mock/*.tpl %{buildroot}%{_sysconfdir}/mock
+cp -a etc/mock/templates/*.tpl %{buildroot}%{_sysconfdir}/mock/templates
 cp -a etc/mock/eol/*cfg %{buildroot}%{_sysconfdir}/mock/eol
 
 # generate files section with config - there is many of them
 echo "%defattr(0644, root, mock)" > %{name}.cfgs
-find %{buildroot}%{_sysconfdir}/mock -name "*.cfg" -o -name '*.tpl'  \
+find %{buildroot}%{_sysconfdir}/mock -name "*.cfg" -o -name '*.tpl' \
     | sed -e "s|^%{buildroot}|%%config(noreplace) |" >> %{name}.cfgs
 # just for %%ghosting purposes
 ln -s fedora-rawhide-x86_64.cfg %{buildroot}%{_sysconfdir}/mock/default.cfg
@@ -83,6 +80,7 @@ if [ -d %{buildroot}%{_datadir}/bash-completion ]; then
 elif [ -d %{buildroot}%{_sysconfdir}/bash_completion.d ]; then
     echo %{_sysconfdir}/bash_completion.d/mock >> %{name}.cfgs
 fi
+
 
 %pre
 # check for existence of mock group, create it if not found
@@ -106,14 +104,14 @@ else
     # something obsure, use buildtime version
     ver=%{?rhel}%{?fedora}%{?mageia}
 fi
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} > 7
+%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel}
 if [ -s /etc/mageia-release ]; then
     mock_arch=$(sed -n '/^$/!{$ s/.* \(\w*\)$/\1/p}' /etc/mageia-release)
 else
-    mock_arch=$(python3 -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
+    mock_arch=$(%{__python3} -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
 fi
 %else
-mock_arch=$(python -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
+mock_arch=$(%{__python} -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
 %endif
 cfg=%{?fedora:fedora}%{?rhel:epel}%{?mageia:mageia}-$ver-${mock_arch}.cfg
 if [ -e %{_sysconfdir}/mock/$cfg ]; then
@@ -131,13 +129,19 @@ fi
 %license COPYING
 %dir  %{_sysconfdir}/mock
 %dir  %{_sysconfdir}/mock/eol
+%dir  %{_sysconfdir}/mock/templates
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
-* Thu Aug 29 2019 Nico Kadel-Garcia - 31.2-1
-- Include .tpl files
-- Requies mock > 1.4.18 to support protected_packages setting
-- Clean up use of --disablrepo
+* Sat Sep 14 2019 Miroslav Suchý <msuchy@redhat.com> 31.3-1
+- mock-core-configs: installroot fix for fedora 31+ i386 (praiskup@redhat.com)
+- Moving templates into templates dir (sisi.chlupova@gmail.com)
+- Changing cfg files for fedora 30 to use tpl file (sisi.chlupova@gmail.com)
+- Moving fedora-30-x86_64.cfg into templates/fedora-30.tpl
+  (sisi.chlupova@gmail.com)
+- baseurl for f30-build was changed (sisi.chlupova@gmail.com)
+- no i686 repositories [GH#325]
+- adds equation sign to --disablerepo (thrnciar@reedhat.com)
 
 * Mon Aug 26 2019 Miroslav Suchý <msuchy@redhat.com> 31.2-1
 - revert sysusers setting [RHBZ#1740545]
