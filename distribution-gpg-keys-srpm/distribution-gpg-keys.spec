@@ -12,6 +12,10 @@ URL:		https://github.com/xsuchy/distribution-gpg-keys
 Source0:	%{name}-%{version}.tar.gz
 BuildArch:	noarch
 
+%if 0%{?rhel}
+BuildRequires: epel-rpm-macros
+%endif
+
 %if 0%{?fedora} > 0
 Suggests:	ubu-keyring
 Suggests:	debian-keyring
