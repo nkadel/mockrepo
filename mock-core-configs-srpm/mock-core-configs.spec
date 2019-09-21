@@ -16,6 +16,10 @@ URL:        https://github.com/rpm-software-management/mock/
 Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
 BuildArch:  noarch
 
+%if 0%{?rhel}
+BuildRequires: epel-rpm-macros
+%endif
+
 # distribution-gpg-keys contains GPG keys used by mock configs
 Requires:   distribution-gpg-keys >= 1.29
 # mock before 1.4.18 does not support 'protected_packages'
