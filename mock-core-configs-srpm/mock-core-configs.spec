@@ -3,7 +3,7 @@
 
 Name:       mock-core-configs
 Version:    31.3
-Release:    1%{?dist}
+Release:    0%{?dist}
 Summary:    Mock core config files basic chroots
 
 License:    GPLv2+
@@ -26,13 +26,15 @@ Requires:   distribution-gpg-keys >= 1.29
 Conflicts:  mock < 1.4.18
 
 Requires(post): coreutils
+Requires(pre):  shadow-utils
+%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel}
 # to detect correct default.cfg
 Requires(post): python%{python3_pkgversion}-dnf
 Requires(post): python%{python3_pkgversion}-hawkey
 Requires(post): system-release
 Requires(post): python%{python3_pkgversion}
 Requires(post): sed
-Requires(pre):  shadow-utils
+%endif
 %if 0%{?rhel} && 0%{?rhel} <= 7
 # to detect correct default.cfg
 Requires(post): yum
@@ -52,7 +54,6 @@ Config files which allow you to create chroots for:
 
 
 %build
-
 %if 0%{?rhel} > 0 && 0%{?rhel} < 8
 # Required for dnf enabled ocnfigs on yum based hosts
 # config_opts['use_bootstrap_container'] = True
@@ -115,7 +116,7 @@ else
     mock_arch=$(%{__python3} -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
 fi
 %else
-mock_arch=$(%{__python} -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
+mock_arch=$(%{__python2} -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
 %endif
 cfg=%{?fedora:fedora}%{?rhel:epel}%{?mageia:mageia}-$ver-${mock_arch}.cfg
 if [ -e %{_sysconfdir}/mock/$cfg ]; then
