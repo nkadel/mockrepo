@@ -14,8 +14,8 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 1.4.19
-Release: 1%{?dist}
+Version: 1.4.20
+Release: 0%{?dist}
 License: GPLv2+
 # Source is created by
 # git clone https://github.com/rpm-software-management/mock.git
@@ -48,12 +48,11 @@ Suggests: iproute
 %if 0%{?mageia}
 Suggests: iproute2
 %endif
+BuildRequires: bash-completion
 %if 0%{?rhel}
 BuildRequires: epel-rpm-macros
-%endif
-BuildRequires: bash-completion
+%endif # rhel
 %if %{use_python3}
-# Sort EPEL from RHEL python modules correctly
 Requires: python%{python3_pkgversion}-distro
 Requires: python%{python3_pkgversion}-jinja2
 Requires: python%{python3_pkgversion}-six >= 1.4.0
@@ -83,15 +82,16 @@ Recommends: btrfs-progs
 Recommends: dnf-utils
 Suggests: qemu-user-static
 Suggests: procenv
+Suggests: podman
 %else
-%if 0%{?rhel} && 0%{?rhel} < 8
+%if 0%{?rhel} == 7
 Requires: btrfs-progs
 Requires: yum >= 2.4
 Requires: yum-utils
 %endif
 %endif
 
-%if 0%{?fedora} || 0%{?rhel}
+%if 0%{?fedora} || 0%{?rhel} >= 8
 BuildRequires: perl-interpreter
 %else
 BuildRequires: perl
@@ -134,25 +134,25 @@ of the buildroot.
 
 %prep
 %setup -q
-for file in py/mock.py py/mockchain.py py/mock-parse-buildlog.py; do
+for file in py/mock.py py/mock-parse-buildlog.py; do
   sed -i 1"s|#!/usr/bin/python3 |#!%{__python} |" $file
 done
 
 %build
-for i in py/mock.py py/mockchain.py py/mock-parse-buildlog.py; do
+for i in py/mock.py py/mock-parse-buildlog.py; do
     perl -p -i -e 's|^__VERSION__\s*=.*|__VERSION__="%{version}"|' $i
     perl -p -i -e 's|^SYSCONFDIR\s*=.*|SYSCONFDIR="%{_sysconfdir}"|' $i
     perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python_sitelib}"|' $i
     perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python_sitelib}/mockbuild"|' $i
 done
-for i in docs/mockchain.1 docs/mock.1 docs/mock-parse-buildlog.1; do
+for i in docs/mock.1 docs/mock-parse-buildlog.1; do
     perl -p -i -e 's|\@VERSION\@|%{version}"|' $i
 done
 
 %install
 install -d %{buildroot}%{_bindir}
 install -d %{buildroot}%{_libexecdir}/mock
-install py/mockchain.py %{buildroot}%{_bindir}/mockchain
+install mockchain %{buildroot}%{_bindir}/mockchain
 install py/mock-parse-buildlog.py %{buildroot}%{_bindir}/mock-parse-buildlog
 install py/mock.py %{buildroot}%{_libexecdir}/mock/mock
 ln -s consolehelper %{buildroot}%{_bindir}/mock
@@ -169,7 +169,6 @@ cp -a etc/consolehelper/mock %{buildroot}%{_sysconfdir}/security/console.apps/%{
 
 install -d %{buildroot}%{_datadir}/bash-completion/completions/
 cp -a etc/bash_completion.d/* %{buildroot}%{_datadir}/bash-completion/completions/
-ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mockchain
 ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildlog
 
 install -d %{buildroot}%{_sysconfdir}/pki/mock
@@ -179,7 +178,7 @@ install -d %{buildroot}%{python_sitelib}/
 cp -a py/mockbuild %{buildroot}%{python_sitelib}/
 
 install -d %{buildroot}%{_mandir}/man1
-cp -a docs/mockchain.1 docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
+cp -a docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
 install -d %{buildroot}%{_datadir}/cheat
 cp -a docs/mock.cheat %{buildroot}%{_datadir}/cheat/mock
 
@@ -196,7 +195,6 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %defattr(0644, root, mock)
 %config(noreplace) %{_sysconfdir}/mock/site-defaults.cfg
 %{_datadir}/bash-completion/completions/mock
-%{_datadir}/bash-completion/completions/mockchain
 %{_datadir}/bash-completion/completions/mock-parse-buildlog
 
 %defattr(-, root, root)
@@ -223,7 +221,6 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 
 # docs
 %{_mandir}/man1/mock.1*
-%{_mandir}/man1/mockchain.1*
 %{_mandir}/man1/mock-parse-buildlog.1*
 %{_datadir}/cheat/mock
 
@@ -235,20 +232,30 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %files scm
 %{python_sitelib}/mockbuild/scm.py*
 %if %{use_python3}
-%if ! 0%{?rhel}
 %{python3_sitelib}/mockbuild/__pycache__/scm.*.py*
-%endif
 %endif
 
 %files lvm
 %{python_sitelib}/mockbuild/plugins/lvm_root.*
 %if %{use_python3}
-%if ! 0%{?rhel}
 %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
-%endif
 %endif
 
 %changelog
+* Fri Oct 04 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.20-1
+- /bin/mockchain wrapper around 'mock --chain' (praiskup@redhat.com)
+- mock: options for retrying packager managers' actions (praiskup@redhat.com)
+- remove mockchain [RHBZ#1757388]
+- chain: don't skip local repository (praiskup@redhat.com)
+- chain: propagate local repository to bootstrap chroot (praiskup@redhat.com)
+- hw_info: don't create root-owned files (praiskup@redhat.com)
+- ignore ./var/log when creating root_cache - fixes #309
+  (jiri.novak@ghorland.net)
+- mock: don't create root files if possible (praiskup@redhat.com)
+- add commandline options for using bootstrap image (frostyx@email.cz)
+- Use podman to pull and export an image as a bootstrap chroot
+  (dmach@redhat.com)
+
 * Tue Sep 10 2019 Miroslav Suchý <msuchy@redhat.com> 1.4.19-1
 - results should be owned by unpriv user [GH#322]
 - do not build with tests by default
