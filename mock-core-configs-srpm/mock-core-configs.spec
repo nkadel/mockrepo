@@ -2,7 +2,7 @@
 %global mockgid 135
 
 Name:       mock-core-configs
-Version:    31.3
+Version:    31.6
 Release:    0%{?dist}
 Summary:    Mock core config files basic chroots
 
@@ -26,7 +26,6 @@ Requires:   distribution-gpg-keys >= 1.29
 Conflicts:  mock < 1.4.18
 
 Requires(post): coreutils
-Requires(pre):  shadow-utils
 %if 0%{?fedora} || 0%{?mageia} || 0%{?rhel}
 # to detect correct default.cfg
 Requires(post): python%{python3_pkgversion}-dnf
@@ -35,6 +34,7 @@ Requires(post): system-release
 Requires(post): python%{python3_pkgversion}
 Requires(post): sed
 %endif
+Requires(pre):  shadow-utils
 %if 0%{?rhel} && 0%{?rhel} <= 7
 # to detect correct default.cfg
 Requires(post): yum
@@ -54,14 +54,8 @@ Config files which allow you to create chroots for:
 
 
 %build
-%if 0%{?rhel} > 0 && 0%{?rhel} < 8
-# Required for dnf enabled ocnfigs on yum based hosts
-# config_opts['use_bootstrap_container'] = True
-grep -rl "config_opts\['package_manager'\] = 'dnf'" mock-core-configs | \
-    while read name; do
-    sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap on dnf host for %%rhel %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\n\n/g" $name
-done
-%endif # rhel && rhel < 8
+# nothing to do here
+
 
 %install
 mkdir -p %{buildroot}%{_sysusersdir}
@@ -116,7 +110,7 @@ else
     mock_arch=$(%{__python3} -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
 fi
 %else
-mock_arch=$(%{__python2} -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
+mock_arch=$(%{__python} -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
 %endif
 cfg=%{?fedora:fedora}%{?rhel:epel}%{?mageia:mageia}-$ver-${mock_arch}.cfg
 if [ -e %{_sysconfdir}/mock/$cfg ]; then
@@ -138,6 +132,34 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Sat Oct 05 2019 Nico Kadel-Garcia <nkadel@gmail.com> 31.6-0
+- Activate epel-rpm-macros
+- Use python3 for all RHEL
+- Use python3_pkgversion consistently
+
+* Fri Oct 04 2019 Miroslav Suchý <msuchy@redhat.com> 31.6-1
+- disable modular repo for f29
+- configure podman containers for Fedora, EPEL and Mageia (frostyx@email.cz)
+- Fix baseurl typo in centos-stream config (dollierp@redhat.com)
+
+* Thu Sep 26 2019 Miroslav Suchý <msuchy@redhat.com> 31.5-1
+- expand contentdir for now
+- expand $stream for now
+- add extra_chroot_dirs to centos8
+- use dnf for centos8
+- add centos-stream-8
+- rhelepel: reuse epel-8.tpl (praiskup@redhat.com)
+- Add Amazon Linux 2 configs (haroldji@amazon.com)
+- centos-8: enable PowerTools repo (praiskup@redhat.com)
+
+* Tue Sep 24 2019 Miroslav Suchý <msuchy@redhat.com> 31.4-1
+- provide explanation why modular repos are disabled
+- add epel-8
+- Changing cfg files for fedora rawhide to use tpl file
+  (sisi.chlupova@gmail.com)
+- Changing cfg files for fedora 31 to use tpl file (sisi.chlupova@gmail.com)
+- Changing cfg files for fedora 29 to use tpl file (sisi.chlupova@gmail.com)
+
 * Sat Sep 14 2019 Miroslav Suchý <msuchy@redhat.com> 31.3-1
 - mock-core-configs: installroot fix for fedora 31+ i386 (praiskup@redhat.com)
 - Moving templates into templates dir (sisi.chlupova@gmail.com)
@@ -262,3 +284,5 @@ fi
 
 * Thu Sep 07 2017 Miroslav Suchý <msuchy@redhat.com> 27.1-1
 - Split from Mock package.
+
+
