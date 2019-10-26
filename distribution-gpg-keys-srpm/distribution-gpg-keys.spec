@@ -1,5 +1,5 @@
 Name:		distribution-gpg-keys
-Version:	1.34
+Version:	1.35
 Release:	0%{?dist}
 Summary:	GPG keys of various Linux distributions
 
@@ -57,8 +57,27 @@ cp -a keys/* %{buildroot}%{_datadir}/%{name}/
 %{_datadir}/%{name}/copr
 
 %changelog
-* Thu Aug 29 2019 Nico Kadel-Garcia <nkadel@gmail.com> 1.34-1
-- Update to 1.24-1
+* Sat Oct 26 2019 Nico Kadel-Garcia <nkadeel@gmail.com>
+- Activate epel-rpm-macros for epel files
+
+* Thu Sep 26 2019 Miroslav Suchý <msuchy@redhat.com> 1.35-1
+- update copr keys
+- Add key for Amazon Linux 2
+
+* Tue Aug 20 2019 Miroslav Suchý <msuchy@redhat.com> 1.34-1
+- update copr keys
+- fix whitespace error in fedora-32 key (rhbz#1743422)
+- Add RPM Fusion keys for fedora 32
+
+* Fri Aug 16 2019 Miroslav Suchý <msuchy@redhat.com> 1.33-1
+- add EPEL-8
+- add CentOS 8 keys
+- add Fedora 32 key
+
+* Mon Jul 08 2019 Miroslav Suchý <msuchy@redhat.com> 1.32-1
+- Update Copr keys
+- Add OpenMandriva package signing key
+- add Zimbra key
 
 * Thu May 16 2019 Miroslav Suchý <msuchy@redhat.com> 1.31-1
 - update Copr keys
