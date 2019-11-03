@@ -2,8 +2,10 @@
 %global mockgid 135
 
 Name:       mock-core-configs
-Version:    31.6
-Release:    0%{?dist}
+Version:    31.7
+# Increase release to replace upstream
+#Release:    0%%{?dist}
+Release:    10%{?dist}
 Summary:    Mock core config files basic chroots
 
 License:    GPLv2+
@@ -132,6 +134,9 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Sat Nov 2 2019 Nico Kadel-Garcia <nkadel@gmail.com> 31.7-0
+- Update to 36.7
+
 * Sat Oct 05 2019 Nico Kadel-Garcia <nkadel@gmail.com> 31.6-0
 - Activate epel-rpm-macros
 - Use python3 for all RHEL
