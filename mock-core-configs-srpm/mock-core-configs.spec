@@ -5,7 +5,7 @@ Name:       mock-core-configs
 Version:    31.7
 # Increase release to replace upstream
 #Release:    0%%{?dist}
-Release:    10%{?dist}
+Release:    11%{?dist}
 Summary:    Mock core config files basic chroots
 
 License:    GPLv2+
@@ -72,7 +72,7 @@ done
 # config_opts['use_bootstrap_container'] = True
 # config_opts['use_bootstrap_image'] = True
 find etc/mock/ -name fedora-31.tpl | while read name; do
-    sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap image for zstd %%rhel %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\nconfig_opts\[\'use_bootstrap_image\'\] = True\n\n/g" $name
+    sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap image for zstd on %%rhel: %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\nconfig_opts\[\'use_bootstrap_image\'\] = True\n\n/g" $name
 done
 %endif
 
