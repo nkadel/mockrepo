@@ -56,8 +56,15 @@ Config files which allow you to create chroots for:
 
 
 %build
-# nothing to do here
 
+%if 0%{?rhel} > 0 && 0%{?rhel} < 8
+# Required for dnf enabled ocnfigs on yum based hosts
+# config_opts['use_bootstrap_container'] = True
+grep -rl "config_opts\['package_manager'\] = 'dnf'" etc/mock | \
+    while read name; do
+    sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap on dnf host for %%rhel %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\n\n/g" $name
+done
+%endif # rhel && rhel < 8
 
 %install
 mkdir -p %{buildroot}%{_sysusersdir}
@@ -137,10 +144,10 @@ fi
 * Sat Nov 2 2019 Nico Kadel-Garcia <nkadel@gmail.com> 31.7-0
 - Update to 36.7
 
-* Sat Oct 05 2019 Nico Kadel-Garcia <nkadel@gmail.com> 31.6-0
-- Activate epel-rpm-macros
-- Use python3 for all RHEL
-- Use python3_pkgversion consistently
+* Fri Nov 01 2019 Miroslav Suchý <msuchy@redhat.com> 31.7-1
+- Add configs for epel8-playground (mmathesi@redhat.com)
+- add 3 base packages to epel-playground buildroot [RHBZ#1764445]
+- add 3 base packages to epel buildroot [RHBZ#1764445]
 
 * Fri Oct 04 2019 Miroslav Suchý <msuchy@redhat.com> 31.6-1
 - disable modular repo for f29
@@ -289,5 +296,3 @@ fi
 
 * Thu Sep 07 2017 Miroslav Suchý <msuchy@redhat.com> 27.1-1
 - Split from Mock package.
-
-
