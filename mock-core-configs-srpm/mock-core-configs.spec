@@ -20,6 +20,7 @@ BuildArch:  noarch
 
 %if 0%{?rhel}
 BuildRequires: epel-rpm-macros
+Requires: podman
 %endif
 
 # distribution-gpg-keys contains GPG keys used by mock configs
@@ -65,6 +66,17 @@ grep -rl "config_opts\['package_manager'\] = 'dnf'" etc/mock | \
     sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap on dnf host for %%rhel %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\n\n/g" $name
 done
 %endif # rhel && rhel < 8
+
+%if 0%{?rhel} > 0
+# Required for zstd anabled fedora-31 files
+# config_opts['use_bootstrap_container'] = True
+# config_opts['use_bootstrap_image'] = True
+find etc/mock/ -name fedora-31.tpl | while read name; do
+    sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap image for zstd %%rhel %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\nconfig_opts\[\'use_bootstrap_image\'\] = True\n\n/g" $name
+done
+%endif
+
+
 
 %install
 mkdir -p %{buildroot}%{_sysusersdir}
