@@ -17,6 +17,7 @@ MOCKPKGS+=mock-srpm
 REPOS+=mockrepo/el/7
 REPOS+=mockrepo/el/8
 REPOS+=mockrepo/fedora/30
+REPOS+=mockrepo/fedora/31
 
 REPODIRS := $(patsubst %,%/x86_64/repodata,$(REPOS)) $(patsubst %,%/SRPMS/repodata,$(REPOS))
 
@@ -24,11 +25,13 @@ REPODIRS := $(patsubst %,%/x86_64/repodata,$(REPOS)) $(patsubst %,%/SRPMS/repoda
 CFGS+=mockrepo-7-x86_64.cfg
 CFGS+=mockrepo-8-x86_64.cfg
 CFGS+=mockrepo-f30-x86_64.cfg
+CFGS+=mockrepo-f31-x86_64.cfg
 
 # Link from /etc/mock
 MOCKCFGS+=epel-7-x86_64.cfg
 MOCKCFGS+=epel-8-x86_64.cfg
 MOCKCFGS+=fedora-30-x86_64.cfg
+MOCKCFGS+=fedora-31-x86_64.cfg
 
 all:: $(CFGS) $(MOCKCFGS)
 all:: $(REPODIRS)
@@ -119,6 +122,25 @@ mockrepo-f30-x86_64.cfg: /etc/mock/fedora-30-x86_64.cfg
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
 	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/30/x86_64/' >> $@
+	@echo 'failovermethod=priority' >> $@
+	@echo 'skip_if_unavailable=False' >> $@
+	@echo 'metadata_expire=1' >> $@
+	@echo 'gpgcheck=0' >> $@
+	@echo '#cost=2000' >> $@
+	@echo '"""' >> $@
+	@uniq -u $@ > $@~
+	@mv $@~ $@
+
+mockrepo-f31-x86_64.cfg: /etc/mock/fedora-31-x86_64.cfg
+	@echo Generating $@ from $?
+	@cat $? > $@
+	@sed -i 's/fedora-31-x86_64/mockrepo-f31-x86_64/g' $@
+	@echo '"""' >> $@
+	@echo >> $@
+	@echo '[mockrepo]' >> $@
+	@echo 'name=mockrepo' >> $@
+	@echo 'enabled=1' >> $@
+	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/31/x86_64/' >> $@
 	@echo 'failovermethod=priority' >> $@
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
