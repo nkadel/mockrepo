@@ -14,36 +14,47 @@ MOCKS+=fedora-31-x86_64
 #REPOBASEDIR=/var/www/linux/mockrepo
 REPOBASEDIR:=`/bin/pwd`/../mockrepo
 
+# Deduce local package names and .spec files, for universe Makefile use
 SPEC := `ls *.spec | head -1`
 
+# Needed for yum repo updates
+all:: /usr/bin/createrepo
 all:: $(MOCKS)
 
-getsrc:: FORCE
+# Get any tarballs as describe by .spec
+getsrc:
 	spectool -g $(SPEC)
 
-srpm:: FORCE
+srpm:: src.rpm
+
+#.PHONY:: src.rpm
+src.rpm:: Makefile
+	@rm -rf rpmbuild
+	@rm -f $@
 	@echo "Building SRPM with $(SPEC)"
-	rm -rf rpmbuild
 	rpmbuild --define '_topdir $(PWD)/rpmbuild' \
 		--define '_sourcedir $(PWD)' \
 		-bs $(SPEC) --nodeps
+	mv rpmbuild/SRPMS/*.src.rpm src.rpm
 
-build:: srpm FORCE
+.PHONY: build
+build:: src.rpm
 	rpmbuild --define '_topdir $(PWD)/rpmbuild' \
-		--rebuild rpmbuild/SRPMS/*.src.rpm
+		--rebuild $?
 
-$(MOCKS):: srpm FORCE
+.PHONY: $(MOCKS)
+$(MOCKS):: src.rpm
 	@if [ -e $@ -a -n "`find $@ -name \*.rpm`" ]; then \
 		echo "	Skipping RPM populated $@"; \
 	else \
-		echo "Storing " rpmbuild/SRPMS/*.src.rpm "as $@.src.rpm"; \
-		install rpmbuild/SRPMS/*.src.rpm $@.src.rpm; \
-		echo "Building $@.src.rpm in $@"; \
+		echo "Actally building $? in $@"; \
 		rm -rf $@; \
 		mock -q -r $(PWD)/../$@.cfg \
 		     --resultdir=$(PWD)/$@ \
-		     $@.src.rpm; \
+		     $?; \
 	fi
+
+mock:: $(MOCKS)
 
 mock:: $(MOCKS)
 
@@ -51,6 +62,7 @@ install:: $(MOCKS)
 	@for repo in $(MOCKS); do \
 	    echo Installing $$repo; \
 	    case $$repo in \
+		*-6-x86_64) yumrelease=el/6; yumarch=x86_64; ;; \
 		*-7-x86_64) yumrelease=el/7; yumarch=x86_64; ;; \
 		*-8-x86_64) yumrelease=el/8; yumarch=x86_64; ;; \
 		*-30-x86_64) yumrelease=fedora/30; yumarch=x86_64; ;; \
@@ -61,20 +73,20 @@ install:: $(MOCKS)
 	    esac; \
 	    rpmdir=$(REPOBASEDIR)/$$yumrelease/$$yumarch; \
 	    srpmdir=$(REPOBASEDIR)/$$yumrelease/SRPMS; \
-	    echo "Pushing SRPMS to $$srpmdir"; \
-	    rsync -av $$repo/*.src.rpm --no-owner --no-group $$repo/*.src.rpm $$srpmdir/. || exit 1; \
-	    createrepo -q --update $$srpmdir/.; \
-	    echo "Pushing RPMS to $$rpmdir"; \
-	    rsync -av $$repo/*.rpm --exclude=*.src.rpm --exclude=*debuginfo*.rpm --no-owner --no-group $$repo/*.rpm $$rpmdir/. || exit 1; \
-	    createrepo -q --update $$rpmdir/.; \
+	    echo "	Pusning SRPMS to $$srpmdir"; \
+	    rsync $(RSYNCSAFEOPTS) $$repo/*.src.rpm $$srpmdir/. || exit 1; \
+	    createrepo -q $$srpmdir/.; \
+	    echo "	Pushing RPMS to $$rpmdir"; \
+	    rsync $(RSYNCSAFEOPTS) --exclude=*.src.rpm --exclude=*debuginfo*.rpm $$repo/*.rpm $$rpmdir/. || exit 1; \
+	    createrepo -q $$rpmdir/.; \
 	done
 
 clean::
-	rm -rf */
+	rm -rf $(MOCKS)
 	rm -rf rpmbuild
+	rm -rf */
+	rm -f *.rpm
+	rm -f *~
 	rm -f *.out
 
 realclean distclean:: clean
-	rm -f *.rpm
-
-FORCE:
