@@ -153,9 +153,6 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
-* Sat Nov 2 2019 Nico Kadel-Garcia <nkadel@gmail.com> 31.7-0
-- Update to 36.7
-
 * Fri Nov 01 2019 Miroslav Suchý <msuchy@redhat.com> 31.7-1
 - Add configs for epel8-playground (mmathesi@redhat.com)
 - add 3 base packages to epel-playground buildroot [RHBZ#1764445]
