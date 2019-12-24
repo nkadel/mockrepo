@@ -33,12 +33,11 @@ MOCKCFGS+=epel-8-x86_64.cfg
 MOCKCFGS+=fedora-30-x86_64.cfg
 MOCKCFGS+=fedora-31-x86_64.cfg
 
-all:: $(CFGS) $(MOCKCFGS)
-all:: $(REPODIRS)
-all:: $(MOCKPKGS)
+all:: install
 
-.PHONY: all getsrc install clean build
-all getsrc install::
+.PHONY: getsrc install clean build
+install:: $(CFGS) $(MOCKCFGS) $(REPODIRS) $(MOCKPKGS)
+getsrc install clean build::
 	@for name in $(MOCKPKGS); do \
 	     (cd $$name; $(MAKE) $(MFLAGS) $@); \
 	done
