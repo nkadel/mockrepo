@@ -78,8 +78,8 @@ mockrepo-7-x86_64.cfg: /etc/mock/epel-7-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
 	@sed -i 's/epel-7-x86_64/mockrepo-7-x86_64/g' $@
-	@echo '"""' >> $@
 	@echo >> $@
+	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
@@ -90,15 +90,13 @@ mockrepo-7-x86_64.cfg: /etc/mock/epel-7-x86_64.cfg
 	@echo 'gpgcheck=0' >> $@
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
-	@uniq -u $@ > $@~
-	@mv $@~ $@
 
 mockrepo-8-x86_64.cfg: /etc/mock/epel-8-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
 	@sed -i 's/epel-8-x86_64/mockrepo-8-x86_64/g' $@
-	@echo '"""' >> $@
 	@echo >> $@
+	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
@@ -109,15 +107,13 @@ mockrepo-8-x86_64.cfg: /etc/mock/epel-8-x86_64.cfg
 	@echo 'gpgcheck=0' >> $@
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
-	@uniq -u $@ > $@~
-	@mv $@~ $@
 
 mockrepo-f30-x86_64.cfg: /etc/mock/fedora-30-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
 	@sed -i 's/fedora-30-x86_64/mockrepo-f30-x86_64/g' $@
-	@echo '"""' >> $@
 	@echo >> $@
+	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
@@ -128,15 +124,13 @@ mockrepo-f30-x86_64.cfg: /etc/mock/fedora-30-x86_64.cfg
 	@echo 'gpgcheck=0' >> $@
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
-	@uniq -u $@ > $@~
-	@mv $@~ $@
 
 mockrepo-f31-x86_64.cfg: /etc/mock/fedora-31-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
 	@sed -i 's/fedora-31-x86_64/mockrepo-f31-x86_64/g' $@
-	@echo '"""' >> $@
 	@echo >> $@
+	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
@@ -147,9 +141,6 @@ mockrepo-f31-x86_64.cfg: /etc/mock/fedora-31-x86_64.cfg
 	@echo 'gpgcheck=0' >> $@
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
-	@uniq -u $@ > $@~
-	@mv $@~ $@
-
 
 $(MOCKCFGS)::
 	ln -sf --no-dereference /etc/mock/$@ $@
