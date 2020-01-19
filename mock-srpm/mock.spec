@@ -14,7 +14,9 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 1.4.21
+# Local copy of mock from "devel" branch for patches
+#Version: 1.4.21
+Version: 1.4.21.1
 Release: 0%{?dist}
 License: GPLv2+
 # Source is created by
@@ -101,7 +103,6 @@ Requires: util-linux
 Requires: coreutils
 Requires: procps-ng
 
-
 %description
 Mock takes an SRPM and builds it in a chroot.
 
@@ -150,40 +151,40 @@ for i in docs/mock.1 docs/mock-parse-buildlog.1; do
 done
 
 %install
-install -d %{buildroot}%{_bindir}
-install -d %{buildroot}%{_libexecdir}/mock
-install mockchain %{buildroot}%{_bindir}/mockchain
-install py/mock-parse-buildlog.py %{buildroot}%{_bindir}/mock-parse-buildlog
-install py/mock.py %{buildroot}%{_libexecdir}/mock/mock
-ln -s consolehelper %{buildroot}%{_bindir}/mock
-install create_default_route_in_container.sh %{buildroot}%{_libexecdir}/mock/
+%{__install} -d %{buildroot}%{_bindir}
+%{__install} -d %{buildroot}%{_libexecdir}/mock
+%{__install} mockchain %{buildroot}%{_bindir}/mockchain
+%{__install} py/mock-parse-buildlog.py %{buildroot}%{_bindir}/mock-parse-buildlog
+%{__install} py/mock.py %{buildroot}%{_libexecdir}/mock/mock
+%{__ln_s} consolehelper %{buildroot}%{_bindir}/mock
+%{__install} create_default_route_in_container.sh %{buildroot}%{_libexecdir}/mock/
  
-install -d %{buildroot}%{_sysconfdir}/pam.d
-cp -a etc/pam/* %{buildroot}%{_sysconfdir}/pam.d/
+%{__install} -d %{buildroot}%{_sysconfdir}/pam.d
+%{__cp} -a etc/pam/* %{buildroot}%{_sysconfdir}/pam.d/
 
-install -d %{buildroot}%{_sysconfdir}/mock
-cp -a etc/mock/* %{buildroot}%{_sysconfdir}/mock/
+%{__install} -d %{buildroot}%{_sysconfdir}/mock
+%{__cp} -a etc/mock/* %{buildroot}%{_sysconfdir}/mock/
 
-install -d %{buildroot}%{_sysconfdir}/security/console.apps/
-cp -a etc/consolehelper/mock %{buildroot}%{_sysconfdir}/security/console.apps/%{name}
+%{__install} -d %{buildroot}%{_sysconfdir}/security/console.apps/
+%{__cp} -a etc/consolehelper/mock %{buildroot}%{_sysconfdir}/security/console.apps/%{name}
 
-install -d %{buildroot}%{_datadir}/bash-completion/completions/
-cp -a etc/bash_completion.d/* %{buildroot}%{_datadir}/bash-completion/completions/
-ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildlog
+%{__install} -d %{buildroot}%{_datadir}/bash-completion/completions/
+%{__cp} -a etc/bash_completion.d/* %{buildroot}%{_datadir}/bash-completion/completions/
+%{__ln_s} mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildlog
 
-install -d %{buildroot}%{_sysconfdir}/pki/mock
-cp -a etc/pki/* %{buildroot}%{_sysconfdir}/pki/mock/
+%{__install} -d %{buildroot}%{_sysconfdir}/pki/mock
+%{__cp} -a etc/pki/* %{buildroot}%{_sysconfdir}/pki/mock/
 
-install -d %{buildroot}%{python_sitelib}/
-cp -a py/mockbuild %{buildroot}%{python_sitelib}/
+%{__install} -d %{buildroot}%{python_sitelib}/
+%{__cp} -a py/mockbuild %{buildroot}%{python_sitelib}/
 
-install -d %{buildroot}%{_mandir}/man1
-cp -a docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
-install -d %{buildroot}%{_datadir}/cheat
-cp -a docs/mock.cheat %{buildroot}%{_datadir}/cheat/mock
+%{__install} -d %{buildroot}%{_mandir}/man1
+%{__cp} -a docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
+%{__install} -d %{buildroot}%{_datadir}/cheat
+%{__cp} -a docs/mock.cheat %{buildroot}%{_datadir}/cheat/mock
 
-install -d %{buildroot}/var/lib/mock
-install -d %{buildroot}/var/cache/mock
+%{__install} -d %{buildroot}/var/lib/mock
+%{__install} -d %{buildroot}/var/cache/mock
 
 %check
 %if %{with tests}
