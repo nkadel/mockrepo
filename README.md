@@ -19,17 +19,17 @@ used by EPEL and which are replicated here.
 
 * make build
 
-Installing Samba
+Installing mock
 ==============--
 
-The relevant yum repository is built locally in samba4reepo. To enable the repository, use this:
+The relevant yum repository is built locally in mockreepo. To enable the repository, use this:
 
 * make repo
 
 Then install the .repo file in /etc/yum.repos.d/ as directed. This
 requires root privileges, which is why it's not automated.
 
-Samba RPM Build Security
+Mock RPM Build Security
 ====================
 
 There is a significant security risk with enabling yum repositories
