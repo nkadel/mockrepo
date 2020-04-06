@@ -2,10 +2,8 @@
 %global mockgid 135
 
 Name:       mock-core-configs
-Version:    31.7
-# Increase release to replace upstream
-#Release:    0%%{?dist}
-Release:    11%{?dist}
+Version:    32.6
+Release:    1%{?dist}
 Summary:    Mock core config files basic chroots
 
 License:    GPLv2+
@@ -18,28 +16,28 @@ URL:        https://github.com/rpm-software-management/mock/
 Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
 BuildArch:  noarch
 
-%if 0%{?rhel}
-BuildRequires: epel-rpm-macros
-Requires: podman
-%endif
+# The mock.rpm requires this.  Other packages may provide this if they tend to
+# replace the mock-core-configs.rpm functionality.
+Provides: mock-configs
 
 # distribution-gpg-keys contains GPG keys used by mock configs
-Requires:   distribution-gpg-keys >= 1.29
-# mock before 1.4.18 does not support 'protected_packages'
-Conflicts:  mock < 1.4.18
+Requires:   distribution-gpg-keys >= 1.36
+# specify minimal compatible version of mock
+Requires:   mock >= 2.2
 
 Requires(post): coreutils
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel}
+%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} > 7
 # to detect correct default.cfg
-Requires(post): python%{python3_pkgversion}-dnf
-Requires(post): python%{python3_pkgversion}-hawkey
+Requires(post): python3-dnf
+Requires(post): python3-hawkey
 Requires(post): system-release
-Requires(post): python%{python3_pkgversion}
+Requires(post): python3
 Requires(post): sed
 %endif
 Requires(pre):  shadow-utils
 %if 0%{?rhel} && 0%{?rhel} <= 7
 # to detect correct default.cfg
+Requires(post): python
 Requires(post): yum
 Requires(post): /etc/os-release
 %endif
@@ -57,35 +55,33 @@ Config files which allow you to create chroots for:
 
 
 %build
-
-%if 0%{?rhel} > 0 && 0%{?rhel} < 8
-# Required for dnf enabled ocnfigs on yum based hosts
-# config_opts['use_bootstrap_container'] = True
-grep -rl "config_opts\['package_manager'\] = 'dnf'" etc/mock | \
-    while read name; do
-    sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap on dnf host for %%rhel %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\n\n/g" $name
-done
-%endif # rhel && rhel < 8
-
-%if 0%{?rhel} > 0
-# Required for zstd anabled fedora-31 files
-# config_opts['use_bootstrap_container'] = True
-# config_opts['use_bootstrap_image'] = True
-find etc/mock/ -name fedora-31.tpl | while read name; do
-    sed -i.bak "s/config_opts\['package_manager'\] = 'dnf'/config_opts\['package_manager'\] = 'dnf'\n# Enable bootstrap image for zstd on %%rhel: %{rhel}\nconfig_opts\[\'use_bootstrap_container\'\] = True\nconfig_opts\[\'use_bootstrap_image\'\] = True\n\n/g" $name
-done
+cd etc/host-overrides
+HOST=none
+%if 0%{?fedora}
+HOST="fedora-%{fedora}"
+%endif
+%if 0%{?rhel}
+HOST="rhel-%{rhel}"
 %endif
 
+if [ -d "$HOST" ]; then
+  pushd "$HOST"
+  for i in *.cfg; do
+    cat "$i" >> "../../mock/$i"
+  done
+  popd
+fi
 
 
 %install
 mkdir -p %{buildroot}%{_sysusersdir}
 
-mkdir -p %{buildroot}%{_sysconfdir}/mock/eol
+mkdir -p %{buildroot}%{_sysconfdir}/mock/eol/templates
 mkdir -p %{buildroot}%{_sysconfdir}/mock/templates
 cp -a etc/mock/*.cfg %{buildroot}%{_sysconfdir}/mock
 cp -a etc/mock/templates/*.tpl %{buildroot}%{_sysconfdir}/mock/templates
 cp -a etc/mock/eol/*cfg %{buildroot}%{_sysconfdir}/mock/eol
+cp -a etc/mock/eol/templates/*.tpl %{buildroot}%{_sysconfdir}/mock/eol/templates
 
 # generate files section with config - there is many of them
 echo "%defattr(0644, root, mock)" > %{name}.cfgs
@@ -101,6 +97,10 @@ elif [ -d %{buildroot}%{_sysconfdir}/bash_completion.d ]; then
     echo %{_sysconfdir}/bash_completion.d/mock >> %{name}.cfgs
 fi
 
+# reference valid mock.rpm's docdir with example site-defaults.cfg
+mock_docs=%{_pkgdocdir}
+mock_docs=${mock_docs//mock-core-configs/mock}
+sed -i "s~@MOCK_DOCS@~$mock_docs~" %{buildroot}%{_sysconfdir}/mock/site-defaults.cfg
 
 %pre
 # check for existence of mock group, create it if not found
@@ -124,14 +124,14 @@ else
     # something obsure, use buildtime version
     ver=%{?rhel}%{?fedora}%{?mageia}
 fi
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel}
+%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} > 7
 if [ -s /etc/mageia-release ]; then
     mock_arch=$(sed -n '/^$/!{$ s/.* \(\w*\)$/\1/p}' /etc/mageia-release)
 else
-    mock_arch=$(%{__python3} -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
+    mock_arch=$(python3 -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
 fi
 %else
-mock_arch=$(%{__python} -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
+mock_arch=$(python -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
 %endif
 cfg=%{?fedora:fedora}%{?rhel:epel}%{?mageia:mageia}-$ver-${mock_arch}.cfg
 if [ -e %{_sysconfdir}/mock/$cfg ]; then
@@ -153,6 +153,71 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Wed Apr 01 2020 Pavel Raiskup <praiskup@redhat.com> 32.6-1
+- the site-defaults.cfg file moved from mock to mock-core-configs
+- new option config_opts['isolation'], obsoletes 'use_nspawn'
+- declare minimal version of mock, and set this to v2.2 as we use the new
+  'isolation' config option now, and we provide site-defaults.cfg file
+- specify amazonlinux bootstrap image, to fix --use-bootstrap-image
+- allow to replace mock-core-configs by packages that 'Provides: mock-configs'
+- rpmlint: remove macro in comment
+
+* Thu Mar 26 2020 Pavel Raiskup <praiskup@redhat.com> 32.5-1
+- Add Devel repo to CentOS 8 and CentOS Stream (ngompa13@gmail.com)
+- Add PowerTools sources repo entry to CentOS 8 and CentOS Stream
+  (ngompa13@gmail.com)
+- Fix openSUSE Leap 15.1 aarch64 update repo & package filters
+  (ngompa13@gmail.com)
+- Add openSUSE Leap 15.2 (ngompa13@gmail.com)
+- openSUSE Leap 15.0 is EOL (ngompa13@gmail.com)
+- Add OpenMandriva Lx 4.1 (ngompa13@gmail.com)
+- OpenMandriva Lx 4.0 is EOL (ngompa13@gmail.com)
+
+* Wed Mar 11 2020 Pavel Raiskup <praiskup@redhat.com> 32.4-1
+- disable package_state plugin for openmandriva 4.0/Cooker
+- Mageia 6 is EOL
+- opensuse: copy ssl ca bundle to correct path
+
+* Fri Feb 21 2020 Pavel Raiskup <praiskup@redhat.com> 32.3-2
+- bump version for lost git tag
+
+* Fri Feb 21 2020 Pavel Raiskup <praiskup@redhat.com> 32.3-1
+- put back the opensuse-leap-15.1-x86_64 config
+
+* Thu Feb 20 2020 Pavel Raiskup <praiskup@redhat.com> 32.2-1
+- use one template for branched fedoras
+- templatize F31+ i386
+- use 'dnf.conf' in mageia, opensuse and openmandriva configs
+
+* Sat Feb 08 2020 Pavel Raiskup <praiskup@redhat.com> 32.1-1
+- centos-8 and centos-stream to use dnf.conf
+
+* Fri Feb 07 2020 Pavel Raiskup <praiskup@redhat.com> 32.0-2
+- solve yum.conf vs. dnf.conf inconsistency in config and code
+
+* Thu Feb 06 2020 Pavel Raiskup <praiskup@redhat.com> 32.0-1
+- add F32 configs and move rawhide to F33
+- make compatibility changes with mock 2.0
+- allow host overrides (build-time for now)
+- use jinja for gpgkey= in rawhide template
+- add rhel-{7,8}-s390x configs
+- drop rhel-8-ppc64, it was never supported
+- fix rhel-7 configs
+- update epel-8 config template to include modular repos as well as missing
+  non-modular source repo (mmathesi@redhat.com)
+- drop for a long time useless epel-6-ppc64 config
+- use template for opensuse, openmandriva, mageia, epel, custom ...
+- fix epel-6.tpl config bug
+- set default podman image for centos-stream
+- remove aarch64 string from repo name in template [RHBZ#1780977]
+- EOL F29 configs
+- fix rhelepel configs
+- allow including configs and templates from relative path (frostyx@email.cz)
+- configs: drop cost=2000 from fedora-31+-i386
+- add missing metadata_expire=0 to epel configs
+- change default of 'package_manager' to 'dnf', and use 'dnf.conf'
+- remove rhelbeta-8-*
+
 * Fri Nov 01 2019 Miroslav Suchý <msuchy@redhat.com> 31.7-1
 - Add configs for epel8-playground (mmathesi@redhat.com)
 - add 3 base packages to epel-playground buildroot [RHBZ#1764445]
@@ -305,3 +370,5 @@ fi
 
 * Thu Sep 07 2017 Miroslav Suchý <msuchy@redhat.com> 27.1-1
 - Split from Mock package.
+
+
