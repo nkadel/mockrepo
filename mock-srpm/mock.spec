@@ -1,23 +1,11 @@
-%bcond_with tests
-
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel}
-%global use_python3 1
-%global use_python2 0
-%global __python %{__python3}
-%global python_sitelib %{python3_sitelib}
-%else
-%global use_python3 0
-%global use_python2 1
-%global __python %{__python2}
-%global python_sitelib %{python2_sitelib}
-%endif
+%bcond_with lint
+%bcond_without tests
 
 Summary: Builds packages inside chroots
 Name: mock
-# Local copy of mock from "devel" branch for patches
-# Tags of mock are now being labeled as 2.0-2?
-Version: 2.0
-Release: 0%{?dist}
+Version: 2.2
+#Release: 1%%{?dist}
+Release: 1%{?dist}
 License: GPLv2+
 # Source is created by
 # git clone https://github.com/rpm-software-management/mock.git
@@ -27,6 +15,11 @@ License: GPLv2+
 Source: %{name}-%{version}.tar.gz
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
+
+%if 0%{?rhel}
+BuildRequires:  epel-rpm-macros
+%endif
+
 Requires: tar
 Requires: pigz
 %if 0%{?mageia}
@@ -35,10 +28,18 @@ Requires: usermode-consoleonly
 Requires: usermode
 %endif
 Requires: createrepo_c
-Requires: mock-core-configs >= 27.4
-%if 0%{?use_python2}
-Requires: pyliblzma
+
+# We know that the current version of mock isn't compatible with older variants,
+# and we want to enforce automatic upgrades.
+Conflicts: mock-core-configs < 32.6
+
+# Requires 'mock-core-configs', or replacement (GitHub PR#544).
+Requires: mock-configs
+%if 0%{?fedora} || 0%{?rhel} >= 8
+# This is still preferred package providing 'mock-configs'
+Suggests: mock-core-configs
 %endif
+
 Requires: systemd
 %if 0%{?fedora} || 0%{?rhel} >= 8
 Requires: systemd-container
@@ -51,30 +52,14 @@ Suggests: iproute
 Suggests: iproute2
 %endif
 BuildRequires: bash-completion
-%if 0%{?rhel}
-BuildRequires: epel-rpm-macros
-%endif # rhel
-%if %{use_python3}
 Requires: python%{python3_pkgversion}-distro
 Requires: python%{python3_pkgversion}-jinja2
-Requires: python%{python3_pkgversion}-six >= 1.4.0
 Requires: python%{python3_pkgversion}-requests
 Requires: python%{python3_pkgversion}-rpm
 Requires: python%{python3_pkgversion}-pyroute2
 BuildRequires: python%{python3_pkgversion}-devel
-%if %{with tests}
+%if %{with lint}
 BuildRequires: python%{python3_pkgversion}-pylint
-%endif
-%else
-Requires: python-ctypes
-Requires: python2-distro
-Requires: python-jinja2
-Requires: python-six >= 1.4.0
-Requires: python-requests
-Requires: python2-pyroute2
-Requires: python >= 2.7
-Requires: rpm-python
-BuildRequires: python2-devel
 %endif
 %if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} >= 8
 Requires: dnf
@@ -93,6 +78,14 @@ Requires: yum-utils
 %endif
 %endif
 
+%if %{with tests}
+BuildRequires: python%{python3_pkgversion}-distro
+BuildRequires: python%{python3_pkgversion}-jinja2
+BuildRequires: python%{python3_pkgversion}-pyroute2
+BuildRequires: python%{python3_pkgversion}-pytest
+BuildRequires: python%{python3_pkgversion}-pytest-cov
+%endif
+
 %if 0%{?fedora} || 0%{?rhel} >= 8
 BuildRequires: perl-interpreter
 %else
@@ -102,6 +95,7 @@ BuildRequires: perl
 Requires: util-linux
 Requires: coreutils
 Requires: procps-ng
+
 
 %description
 Mock takes an SRPM and builds it in a chroot.
@@ -136,65 +130,73 @@ of the buildroot.
 %prep
 %setup -q
 for file in py/mock.py py/mock-parse-buildlog.py; do
-  sed -i 1"s|#!/usr/bin/python3 |#!%{__python} |" $file
+  sed -i 1"s|#!/usr/bin/python3 |#!%{__python3} |" $file
 done
 
 %build
 for i in py/mock.py py/mock-parse-buildlog.py; do
     perl -p -i -e 's|^__VERSION__\s*=.*|__VERSION__="%{version}"|' $i
     perl -p -i -e 's|^SYSCONFDIR\s*=.*|SYSCONFDIR="%{_sysconfdir}"|' $i
-    perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python_sitelib}"|' $i
-    perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python_sitelib}/mockbuild"|' $i
+    perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python3_sitelib}"|' $i
+    perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python3_sitelib}/mockbuild"|' $i
 done
 for i in docs/mock.1 docs/mock-parse-buildlog.1; do
     perl -p -i -e 's|\@VERSION\@|%{version}"|' $i
 done
 
 %install
-%{__install} -d %{buildroot}%{_bindir}
-%{__install} -d %{buildroot}%{_libexecdir}/mock
-%{__install} mockchain %{buildroot}%{_bindir}/mockchain
-%{__install} py/mock-parse-buildlog.py %{buildroot}%{_bindir}/mock-parse-buildlog
-%{__install} py/mock.py %{buildroot}%{_libexecdir}/mock/mock
-%{__ln_s} consolehelper %{buildroot}%{_bindir}/mock
-%{__install} create_default_route_in_container.sh %{buildroot}%{_libexecdir}/mock/
+install -d %{buildroot}%{_bindir}
+install -d %{buildroot}%{_libexecdir}/mock
+install mockchain %{buildroot}%{_bindir}/mockchain
+install py/mock-parse-buildlog.py %{buildroot}%{_bindir}/mock-parse-buildlog
+install py/mock.py %{buildroot}%{_libexecdir}/mock/mock
+ln -s consolehelper %{buildroot}%{_bindir}/mock
+install create_default_route_in_container.sh %{buildroot}%{_libexecdir}/mock/
  
-%{__install} -d %{buildroot}%{_sysconfdir}/pam.d
-%{__cp} -a etc/pam/* %{buildroot}%{_sysconfdir}/pam.d/
+install -d %{buildroot}%{_sysconfdir}/pam.d
+cp -a etc/pam/* %{buildroot}%{_sysconfdir}/pam.d/
 
-%{__install} -d %{buildroot}%{_sysconfdir}/mock
-%{__cp} -a etc/mock/* %{buildroot}%{_sysconfdir}/mock/
+install -d %{buildroot}%{_sysconfdir}/mock
+cp -a etc/mock/* %{buildroot}%{_sysconfdir}/mock/
 
-%{__install} -d %{buildroot}%{_sysconfdir}/security/console.apps/
-%{__cp} -a etc/consolehelper/mock %{buildroot}%{_sysconfdir}/security/console.apps/%{name}
+install -d %{buildroot}%{_sysconfdir}/security/console.apps/
+cp -a etc/consolehelper/mock %{buildroot}%{_sysconfdir}/security/console.apps/%{name}
 
-%{__install} -d %{buildroot}%{_datadir}/bash-completion/completions/
-%{__cp} -a etc/bash_completion.d/* %{buildroot}%{_datadir}/bash-completion/completions/
-%{__ln_s} mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildlog
+install -d %{buildroot}%{_datadir}/bash-completion/completions/
+cp -a etc/bash_completion.d/* %{buildroot}%{_datadir}/bash-completion/completions/
+ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildlog
 
-%{__install} -d %{buildroot}%{_sysconfdir}/pki/mock
-%{__cp} -a etc/pki/* %{buildroot}%{_sysconfdir}/pki/mock/
+install -d %{buildroot}%{_sysconfdir}/pki/mock
+cp -a etc/pki/* %{buildroot}%{_sysconfdir}/pki/mock/
 
-%{__install} -d %{buildroot}%{python_sitelib}/
-%{__cp} -a py/mockbuild %{buildroot}%{python_sitelib}/
+install -d %{buildroot}%{python3_sitelib}/
+cp -a py/mockbuild %{buildroot}%{python3_sitelib}/
 
-%{__install} -d %{buildroot}%{_mandir}/man1
-%{__cp} -a docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
-%{__install} -d %{buildroot}%{_datadir}/cheat
-%{__cp} -a docs/mock.cheat %{buildroot}%{_datadir}/cheat/mock
+install -d %{buildroot}%{_mandir}/man1
+cp -a docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
+install -d %{buildroot}%{_datadir}/cheat
+cp -a docs/mock.cheat %{buildroot}%{_datadir}/cheat/mock
 
-%{__install} -d %{buildroot}/var/lib/mock
-%{__install} -d %{buildroot}/var/cache/mock
+install -d %{buildroot}/var/lib/mock
+install -d %{buildroot}/var/cache/mock
+
+mkdir -p %{buildroot}%{_pkgdocdir}
+install -p -m 0644 docs/site-defaults.cfg %{buildroot}%{_pkgdocdir}
 
 %check
-%if %{with tests}
+%if %{with lint}
 # ignore the errors for now, just print them and hopefully somebody will fix it one day
 pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %endif
 
+%if %{with tests}
+./run-tests.sh
+%endif
+
+
 %files
 %defattr(0644, root, mock)
-%config(noreplace) %{_sysconfdir}/mock/site-defaults.cfg
+%doc %{_pkgdocdir}/site-defaults.cfg
 %{_datadir}/bash-completion/completions/mock
 %{_datadir}/bash-completion/completions/mock-parse-buildlog
 
@@ -207,9 +209,11 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %{_libexecdir}/mock
 
 # python stuff
-%{python_sitelib}/*
-%exclude %{python_sitelib}/mockbuild/scm.*
-%exclude %{python_sitelib}/mockbuild/plugins/lvm_root.*
+%{python3_sitelib}/*
+%exclude %{python3_sitelib}/mockbuild/scm.*
+%exclude %{python3_sitelib}/mockbuild/__pycache__/scm.*
+%exclude %{python3_sitelib}/mockbuild/plugins/lvm_root.*
+%exclude %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*
 
 # config files
 %config(noreplace) %{_sysconfdir}/%{name}/*.ini
@@ -231,18 +235,62 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir %{_localstatedir}/lib/mock
 
 %files scm
-%{python_sitelib}/mockbuild/scm.py*
-%if %{use_python3}
+%{python3_sitelib}/mockbuild/scm.py*
 %{python3_sitelib}/mockbuild/__pycache__/scm.*.py*
-%endif
 
 %files lvm
-%{python_sitelib}/mockbuild/plugins/lvm_root.*
-%if %{use_python3}
+%{python3_sitelib}/mockbuild/plugins/lvm_root.*
 %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
-%endif
 
 %changelog
+* Wed Apr 01 2020 Pavel Raiskup <praiskup@redhat.com> 2.2-1
+- depend on mock-configs, not mock-core-configs so users can pick an alternative
+  package with configuration
+- bind-mounting stuff below /tmp into bootstrap is fixed with nspawn (GH#502)
+- don't do util.getAddtlReqs when 'more_buildreqs' not specified
+- implement doOutChroot() abstraction which runs commands either in bootstrap
+  or on host, depending on isolation={nspawn|simple}
+- use doOutChroot() for package_state plugin (GH#525)
+- fix for "mock --chroot -- cmd arg1 arg2" use-case
+- site-defaults.cfg moved from /etc to %%doc, and the config file is now
+  provided by mock-core-configs (GH#555)
+- bootstrap: expand dnf vars in local repo bind-mounts (rhbz#1815703)
+- bootstrap: bindmount local metalink/mirrorlist (rhbz#1816696)
+- config_opts['isolation'] option invented, replaces 'use_nspawn'
+- 'isolation' is now set to 'auto' (means 'nspawn' with fallback to 'simple',
+  (GH#337, otaylor@fishsoup.net)
+- Fedora Toolbox && bootstrap - don't re-bind-mount dev files, and fix
+  installation of filesystem.rpm from bootstrap to normal chroot (GH#550)
+- re-define %%python3_pkgversion on el7 (GH#545)
+- docker use-case: use getpass.getuser() instead of os.getlogin() (GH#551)
+- set LANG to C.UTF-8 by default, even if host has different value (GH#451)
+- bootstrap: use configured yum commands (GH#518, paul@city-fan.org)
+- fixup doubled-logs by predictable bootstrap resultdir (GH#539, rhbz#1805631)
+- fix --chain --isolation=simple with external URLs (GH#542)
+- option --orphanskill fixed for --isolation=simple --bootstrap-chroot
+- orphan processes are now also killed "postyum", right after the installation
+  trasactions are executed to also kill daemons started from scriptlets (GH#183)
+- EL7 fix - use 'private' mount option for <bootsrap_root>/<root>, not 'rprivate'
+- ceanup rpmdb before checking installed packages (fixes builds against target
+  chroots that have different rpmdb backend, e.g. SQLite on F33+)
+
+* Wed Mar 11 2020 Pavel Raiskup <praiskup@redhat.com> 2.1-1
+- depend on mock-core-configs >= 32.4
+- new build-time testsuite
+- accept return code 0 from rpmbuild -br (thrnciar@redhat.com)
+- bootstrap: bind-mount the inner root mount with rprivate
+- new ssl_ca_bundle_path option
+- chain: don't run buildroot.finalize() for each package
+- don't fail when /etc/pki certs are not found (frostyx@email.cz)
+- lvm_root: fix --scrub=all
+- exclude plugin compiled stuff packaged in sub-packages
+- keep trailing newlines in jinja expand
+- sign-plugin: use %%(rpms) variable expansion again
+- bootstrap: bind-mount also baseurl=/absolute/dir repos
+- 'dnf.conf' config is now equivalent to 'yum.conf'
+- don't emit unneeded warning for missing yum (remi@remirepo.net)
+- allow --install /usr/bin/time [GH#474] (miroslav@suchy.cz)
+
 * Fri Feb 07 2020 Pavel Raiskup <praiskup@redhat.com> 2.0-2
 - solve yum.conf vs. dnf.conf inconsistency in code and config
 - fix mockchain with --bootstrap-chroot (issue/469)
