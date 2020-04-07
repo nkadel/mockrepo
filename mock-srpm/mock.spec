@@ -1,11 +1,17 @@
 %bcond_with lint
 %bcond_without tests
 
+%global __python %{__python3}
+%global python_sitelib %{python3_sitelib}
+%if 0%{?rhel} == 7
+%global python3_pkgversion 36
+%endif
+
 Summary: Builds packages inside chroots
 Name: mock
 Version: 2.2
-#Release: 1%%{?dist}
-Release: 1%{?dist}
+#Release: 1%{?dist}
+Release: 0%{?dist}
 License: GPLv2+
 # Source is created by
 # git clone https://github.com/rpm-software-management/mock.git
@@ -15,13 +21,9 @@ License: GPLv2+
 Source: %{name}-%{version}.tar.gz
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
-
-%if 0%{?rhel}
-BuildRequires:  epel-rpm-macros
-%endif
-
 Requires: tar
 Requires: pigz
+Requires: podman
 %if 0%{?mageia}
 Requires: usermode-consoleonly
 %else
@@ -130,15 +132,15 @@ of the buildroot.
 %prep
 %setup -q
 for file in py/mock.py py/mock-parse-buildlog.py; do
-  sed -i 1"s|#!/usr/bin/python3 |#!%{__python3} |" $file
+  sed -i 1"s|#!/usr/bin/python3 |#!%{__python} |" $file
 done
 
 %build
 for i in py/mock.py py/mock-parse-buildlog.py; do
     perl -p -i -e 's|^__VERSION__\s*=.*|__VERSION__="%{version}"|' $i
     perl -p -i -e 's|^SYSCONFDIR\s*=.*|SYSCONFDIR="%{_sysconfdir}"|' $i
-    perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python3_sitelib}"|' $i
-    perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python3_sitelib}/mockbuild"|' $i
+    perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python_sitelib}"|' $i
+    perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python_sitelib}/mockbuild"|' $i
 done
 for i in docs/mock.1 docs/mock-parse-buildlog.1; do
     perl -p -i -e 's|\@VERSION\@|%{version}"|' $i
@@ -169,8 +171,8 @@ ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildl
 install -d %{buildroot}%{_sysconfdir}/pki/mock
 cp -a etc/pki/* %{buildroot}%{_sysconfdir}/pki/mock/
 
-install -d %{buildroot}%{python3_sitelib}/
-cp -a py/mockbuild %{buildroot}%{python3_sitelib}/
+install -d %{buildroot}%{python_sitelib}/
+cp -a py/mockbuild %{buildroot}%{python_sitelib}/
 
 install -d %{buildroot}%{_mandir}/man1
 cp -a docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
@@ -209,11 +211,11 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %{_libexecdir}/mock
 
 # python stuff
-%{python3_sitelib}/*
-%exclude %{python3_sitelib}/mockbuild/scm.*
-%exclude %{python3_sitelib}/mockbuild/__pycache__/scm.*
-%exclude %{python3_sitelib}/mockbuild/plugins/lvm_root.*
-%exclude %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*
+%{python_sitelib}/*
+%exclude %{python_sitelib}/mockbuild/scm.*
+%exclude %{python_sitelib}/mockbuild/__pycache__/scm.*
+%exclude %{python_sitelib}/mockbuild/plugins/lvm_root.*
+%exclude %{python_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*
 
 # config files
 %config(noreplace) %{_sysconfdir}/%{name}/*.ini
@@ -235,11 +237,11 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir %{_localstatedir}/lib/mock
 
 %files scm
-%{python3_sitelib}/mockbuild/scm.py*
+%{python_sitelib}/mockbuild/scm.py*
 %{python3_sitelib}/mockbuild/__pycache__/scm.*.py*
 
 %files lvm
-%{python3_sitelib}/mockbuild/plugins/lvm_root.*
+%{python_sitelib}/mockbuild/plugins/lvm_root.*
 %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
 
 %changelog
