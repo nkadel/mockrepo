@@ -10,7 +10,6 @@
 REPOBASE=file://$(PWD)
 #REPOBASE=http://localhost
 
-MOCKPKGS+=distribution-gpg-keys-srpm
 MOCKPKGS+=mock-core-configs-srpm
 MOCKPKGS+=mock-srpm
 
