@@ -1,9 +1,7 @@
-# mock group id allocate for Fedora
-%global mockgid 135
-
 Name:       mock-core-configs
-Version:    32.6
-Release:    1%{?dist}
+Version:    34.2
+#Release:    1%%{?dist}
+Release:    0%{?dist}
 Summary:    Mock core config files basic chroots
 
 License:    GPLv2+
@@ -21,9 +19,10 @@ BuildArch:  noarch
 Provides: mock-configs
 
 # distribution-gpg-keys contains GPG keys used by mock configs
-Requires:   distribution-gpg-keys >= 1.36
+Requires:   distribution-gpg-keys >= 1.48
 # specify minimal compatible version of mock
-Requires:   mock >= 2.2
+Requires:   mock >= 2.5
+Requires:   mock-filesystem
 
 Requires(post): coreutils
 %if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} > 7
@@ -55,7 +54,6 @@ Config files which allow you to create chroots for:
 
 
 %build
-cd etc/host-overrides
 HOST=none
 %if 0%{?fedora}
 HOST="fedora-%{fedora}"
@@ -64,13 +62,20 @@ HOST="fedora-%{fedora}"
 HOST="rhel-%{rhel}"
 %endif
 
-if [ -d "$HOST" ]; then
-  pushd "$HOST"
-  for i in *.cfg; do
-    cat "$i" >> "../../mock/$i"
-  done
-  popd
-fi
+# host overrides
+case $HOST in
+  rhel-7)
+    # RPM on EL7 doesn't link against libzstd, and newer Fedora is compressed
+    # using ZSTD.  We need to enable bootstrap image here to be able to
+    # initialize the Fedora bootstrap chroot.
+    for config in etc/mock/fedora-*-*.cfg; do
+        version=$(echo "$config" | cut -d- -f2)
+        if test $version = rawhide || test $version -ge 31; then
+            echo "config_opts['use_bootstrap_image'] = True" >> "$config"
+        fi
+    done
+    ;;
+esac
 
 
 %install
@@ -100,12 +105,8 @@ fi
 # reference valid mock.rpm's docdir with example site-defaults.cfg
 mock_docs=%{_pkgdocdir}
 mock_docs=${mock_docs//mock-core-configs/mock}
+mock_docs=${mock_docs//-%version/-*}
 sed -i "s~@MOCK_DOCS@~$mock_docs~" %{buildroot}%{_sysconfdir}/mock/site-defaults.cfg
-
-%pre
-# check for existence of mock group, create it if not found
-getent group mock > /dev/null || groupadd -f -g %mockgid -r mock
-exit 0
 
 %post
 if [ -s /etc/os-release ]; then
@@ -147,12 +148,67 @@ fi
 
 %files -f %{name}.cfgs
 %license COPYING
-%dir  %{_sysconfdir}/mock
-%dir  %{_sysconfdir}/mock/eol
-%dir  %{_sysconfdir}/mock/templates
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Mon Feb 22 2021 Pavel Raiskup <praiskup@redhat.com> 34.2-1
+- configs: use Fedora N-1 gpg keys for ELN (praiskup@redhat.com)
+
+* Thu Feb 11 2021 Pavel Raiskup <praiskup@redhat.com> 34.1-1
+- fix rawhide config after branching
+
+* Mon Feb 08 2021 Pavel Raiskup <praiskup@redhat.com> 34-1
+- add fedora 34 configs (msuchy@redhat.com)
+- require distribution-gpg-keys with F35 keys (msuchy@redhat.com)
+- make F35 symlink to rawhide (msuchy@redhat.com)
+- Rename centos-stream centos-stream-8 (orion@nwra.com)
+
+* Tue Feb 02 2021 Pavel Raiskup <praiskup@redhat.com> 33.6-1
+- Add Mageia 8 stable release configs (ngompa13@gmail.com)
+- Update Mageia Cauldron configuration for Mageia 9 (ngompa13@gmail.com)
+- add RHEL 6 x86_64 configuration
+
+* Mon Jan 18 2021 Pavel Raiskup <praiskup@redhat.com> 33.5-1
+- fix typo in host-specific config generater
+
+* Mon Jan 18 2021 Pavel Raiskup <praiskup@redhat.com> 33.4-1
+- fix bootstrapping of newer Fedora on EL7
+- efine a bootstrap image for openSUSE Tumbleweed (ngompa13@gmail.com)
+- use fully qualified paths for Fedora/CentOS/RHEL images (ngompa13@gmail.com)
+- rename repoid for centos8 (msuchy@redhat.com)
+- EOL CentOS 6 (msuchy@redhat.com)
+- EOL Fedora 31 (msuchy@redhat.com)
+
+* Fri Nov 20 2020 Pavel Raiskup <praiskup@redhat.com> 33.3-1
+- ELN should use for build Everything repository (jkonecny@redhat.com)
+
+* Wed Nov 11 2020 Pavel Raiskup <praiskup@redhat.com> 33.2-1
+- Add missing CRB repository (jkonecny@redhat.com)
+
+* Wed Nov 11 2020 Pavel Raiskup <praiskup@redhat.com> 33.1-1
+- ELN fixups (mmathesi@redhat.com)
+- EPEL: fix repo-id and name=
+- Add missing repos to CentOS 6 and CentOS 7 configs
+- Do --disablerepo=centos-sclo* in templates
+- Add plain CentOS 6/7/8 configs (without epel)
+- EPEL Playground depends on normal EPEL
+
+* Thu Sep 03 2020 Pavel Raiskup <praiskup@redhat.com> 33-1
+- bump version to 33, as we already ship F33 configs
+- because of the mock-filesystem change, depend on mock 2.5
+
+* Thu Sep 03 2020 Pavel Raiskup <praiskup@redhat.com> 32.8-1
+- set the DNF user_agent in dnf.conf (msuchy@redhat.com)
+- add Fedora ELN configs
+- introduce mock-filesystem subpackage (msuchy@redhat.com)
+
+* Thu Aug 06 2020 Pavel Raiskup <praiskup@redhat.com> 32.7-1
+- add branched Fedora 33 configs
+- eol Fedora 30
+- tolerate a 1-minute baseurl outages in OpenSUSE configs
+- fix site-defaults.cfg reference to docs
+- change all openSUSE configs to use the download redirector (baseurl)
+
 * Wed Apr 01 2020 Pavel Raiskup <praiskup@redhat.com> 32.6-1
 - the site-defaults.cfg file moved from mock to mock-core-configs
 - new option config_opts['isolation'], obsoletes 'use_nspawn'
