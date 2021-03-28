@@ -15,19 +15,19 @@ MOCKPKGS+=mock-srpm
 
 REPOS+=mockrepo/el/7
 REPOS+=mockrepo/el/8
-REPOS+=mockrepo/fedora/31
+REPOS+=mockrepo/fedora/33
 
 REPODIRS := $(patsubst %,%/x86_64/repodata,$(REPOS)) $(patsubst %,%/SRPMS/repodata,$(REPOS))
 
 # No local dependencies at build time
 CFGS+=mockrepo-7-x86_64.cfg
 CFGS+=mockrepo-8-x86_64.cfg
-CFGS+=mockrepo-f31-x86_64.cfg
+CFGS+=mockrepo-f33-x86_64.cfg
 
 # Link from /etc/mock
 MOCKCFGS+=epel-7-x86_64.cfg
 MOCKCFGS+=epel-8-x86_64.cfg
-MOCKCFGS+=fedora-31-x86_64.cfg
+MOCKCFGS+=fedora-33-x86_64.cfg
 
 all:: install
 
@@ -83,6 +83,7 @@ mockrepo-7-x86_64.cfg: /etc/mock/epel-7-x86_64.cfg
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
 	@echo 'gpgcheck=0' >> $@
+	@echo 'priority=5' >> $@
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
 
@@ -100,23 +101,25 @@ mockrepo-8-x86_64.cfg: /etc/mock/epel-8-x86_64.cfg
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
 	@echo 'gpgcheck=0' >> $@
+	@echo 'priority=5' >> $@
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
 
-mockrepo-f31-x86_64.cfg: /etc/mock/fedora-31-x86_64.cfg
+mockrepo-f33-x86_64.cfg: /etc/mock/fedora-33-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
-	@sed -i 's/fedora-31-x86_64/mockrepo-f31-x86_64/g' $@
+	@sed -i 's/fedora-33-x86_64/mockrepo-f33-x86_64/g' $@
 	@echo >> $@
 	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
-	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/31/x86_64/' >> $@
+	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/33/x86_64/' >> $@
 	@echo 'failovermethod=priority' >> $@
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
 	@echo 'gpgcheck=0' >> $@
+	@echo 'priority=5' >> $@
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
 
