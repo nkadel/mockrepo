@@ -3,13 +3,10 @@
 
 %global __python %{__python3}
 %global python_sitelib %{python3_sitelib}
-%if 0%{?rhel} == 7
-%global python3_pkgversion 36
-%endif
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 2.2
+Version: 2.9
 #Release: 1%{?dist}
 Release: 0%{?dist}
 License: GPLv2+
@@ -245,6 +242,9 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
 
 %changelog
+* Sun Mar 28 2021 Nico Kadel-Garcia <nkadel@gmail.com> 2.9-1
+- Update to 2.9-1
+
 * Wed Apr 01 2020 Pavel Raiskup <praiskup@redhat.com> 2.2-1
 - depend on mock-configs, not mock-core-configs so users can pick an alternative
   package with configuration
