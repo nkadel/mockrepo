@@ -1,13 +1,19 @@
 %bcond_with lint
 %bcond_without tests
 
+# mock group id allocate for Fedora
+%global mockgid 135
+
 %global __python %{__python3}
 %global python_sitelib %{python3_sitelib}
+%if 0%{?rhel} == 7
+%global python3_pkgversion 36
+%endif
 
 Summary: Builds packages inside chroots
 Name: mock
 Version: 2.9
-#Release: 1%{?dist}
+#Release: 2%%{?dist}
 Release: 0%{?dist}
 License: GPLv2+
 # Source is created by
@@ -15,12 +21,11 @@ License: GPLv2+
 # cd mock
 # git reset --hard %%{name}-%%{version}
 # tito build --tgz
-Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
+Source: %{name}-%{version}.tar.gz
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
 Requires: tar
 Requires: pigz
-Requires: podman
 %if 0%{?mageia}
 Requires: usermode-consoleonly
 %else
@@ -30,10 +35,11 @@ Requires: createrepo_c
 
 # We know that the current version of mock isn't compatible with older variants,
 # and we want to enforce automatic upgrades.
-Conflicts: mock-core-configs < 32.6
+Conflicts: mock-core-configs < 33
 
 # Requires 'mock-core-configs', or replacement (GitHub PR#544).
 Requires: mock-configs
+Requires: %{name}-filesystem
 %if 0%{?fedora} || 0%{?rhel} >= 8
 # This is still preferred package providing 'mock-configs'
 Suggests: mock-core-configs
@@ -56,6 +62,7 @@ Requires: python%{python3_pkgversion}-jinja2
 Requires: python%{python3_pkgversion}-requests
 Requires: python%{python3_pkgversion}-rpm
 Requires: python%{python3_pkgversion}-pyroute2
+Requires: python%{python3_pkgversion}-templated-dictionary
 BuildRequires: python%{python3_pkgversion}-devel
 %if %{with lint}
 BuildRequires: python%{python3_pkgversion}-pylint
@@ -83,6 +90,8 @@ BuildRequires: python%{python3_pkgversion}-jinja2
 BuildRequires: python%{python3_pkgversion}-pyroute2
 BuildRequires: python%{python3_pkgversion}-pytest
 BuildRequires: python%{python3_pkgversion}-pytest-cov
+BuildRequires: python%{python3_pkgversion}-requests
+BuildRequires: python%{python3_pkgversion}-templated-dictionary
 %endif
 
 %if 0%{?fedora} || 0%{?rhel} >= 8
@@ -126,6 +135,12 @@ Requires: lvm2
 Mock plugin that enables using LVM as a backend and support creating snapshots
 of the buildroot.
 
+%package filesystem
+Summary:  Mock filesystem layout
+
+%description filesystem
+Filesystem layout and group for Mock.
+
 %prep
 %setup -q
 for file in py/mock.py py/mock-parse-buildlog.py; do
@@ -144,6 +159,10 @@ for i in docs/mock.1 docs/mock-parse-buildlog.1; do
 done
 
 %install
+#base filesystem
+mkdir -p %{buildroot}%{_sysconfdir}/mock/eol/templates
+mkdir -p %{buildroot}%{_sysconfdir}/mock/templates
+
 install -d %{buildroot}%{_bindir}
 install -d %{buildroot}%{_libexecdir}/mock
 install mockchain %{buildroot}%{_bindir}/mockchain
@@ -181,6 +200,14 @@ install -d %{buildroot}/var/cache/mock
 
 mkdir -p %{buildroot}%{_pkgdocdir}
 install -p -m 0644 docs/site-defaults.cfg %{buildroot}%{_pkgdocdir}
+
+sed -i 's/^_MOCK_NVR = None$/_MOCK_NVR = "%name-%version-%release"/' \
+    %{buildroot}%{_libexecdir}/mock/mock
+
+%pre filesystem
+# check for existence of mock group, create it if not found
+getent group mock > /dev/null || groupadd -f -g %mockgid -r mock
+exit 0
 
 %check
 %if %{with lint}
@@ -241,9 +268,87 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %{python_sitelib}/mockbuild/plugins/lvm_root.*
 %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
 
+%files filesystem
+%license COPYING
+%dir  %{_sysconfdir}/mock
+%dir  %{_sysconfdir}/mock/eol
+%dir  %{_sysconfdir}/mock/eol/templates
+%dir  %{_sysconfdir}/mock/templates
+%dir  %{_datadir}/cheat
+
 %changelog
-* Sun Mar 28 2021 Nico Kadel-Garcia <nkadel@gmail.com> 2.9-1
-- Update to 2.9-1
+* Tue Jan 26 2021 Fedora Release Engineering <releng@fedoraproject.org> - 2.9-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
+
+* Mon Jan 18 2021 Pavel Raiskup <praiskup@redhat.com> 2.9-1
+- rpkg_preprocessor: Add a force_enable option (tstellar@redhat.com)
+- use TemplatedDictionary as standalone module (msuchy@redhat.com)
+
+* Tue Dec 15 2020 Pavel Raiskup <praiskup@redhat.com> 2.8-1
+- fix use of nspawn (#678) (awilliam@redhat.com)
+- file_util: Improve an error message (tbaeder@redhat.com)
+
+* Mon Nov 30 2020 Pavel Raiskup <praiskup@redhat.com> 2.7-1
+- bootstrap: copy-in katello CA pem file if exists
+- early error when bootstrap is off and external buildrequires are detected (msuchy@redhat.com)
+- hotfix preexec_fn traceback on RHEL 8 s390x (issue 653)
+- introduce external buildrequires (msuchy@redhat.com)
+- add rpkg spec preprocessing capability (clime@fedoraproject.org)
+- sign plugin: don't ignore signing command failure
+- don't setsid() twice with --shell
+- better logging when dynamic BR detected (msuchy@redhat.com)
+- do not TB if rpmbuild fails with exit code 11 (msuchy@redhat.com)
+- fix addrepo when repo is missing (markus.linnala@gmail.com)
+- own the cheat directory
+- Allow percent-sign in config_opts['resultdir']
+- add a new "postupdate" hook (dturecek@redhat.com)
+- log mock's NVR
+
+* Tue Sep 15 2020 Pavel Raiskup <praiskup@redhat.com> 2.6-1
+- the --recurse option implies --continue
+- fix --chain --continue option
+- fail when --continue/--recurse is used without --chain
+- fix _copy_config() for broken symlinks in dst= (rhbz#1878924)
+- auto-download the source RPMs from web with --rebuild
+- handle exceptions from command_parse() method
+- fail verbosely for --chain & --resultdir combination
+- allow using -a|--addrepo with /absolute/path/argument
+- add support for -a/--addrepo in normal --rebuild mode
+- use systemd-nspawn --resolv-conf=off
+- create /etc/localtime as symlink even with isolation=simple (msuchy@redhat.com)
+- dump the reason for particular package build fail in --chain
+- raise PkgError when the source RPM can not be installed
+
+* Thu Sep 03 2020 Pavel Raiskup <praiskup@redhat.com> 2.5-2
+- because of the mock-filesystem change, we need to enforce upgrade
+  of the old mock-core-configs package
+
+* Thu Sep 03 2020 Pavel Raiskup <praiskup@redhat.com> 2.5-1
+- set the DNF user_agent in dnf.conf (msuchy@redhat.com)
+- introduce mock-filesystem subpackage (msuchy@redhat.com)
+- add showrc plugin to record the output of rpm --showrc (riehecky@fnal.gov)
+- document which packages we need in buildroot (msuchy@redhat.com)
+- macros without leading '%' like config_opts['macros']['macroname'] work
+  fine again (issue#605)
+
+* Tue Jul 21 2020 Miroslav Suchý <msuchy@redhat.com> 2.4-1
+- mockbuild/buildroot: Make btrfs-control available if host supports it
+  (ngompa13@gmail.com)
+- Add `module_setup_commands` configuration option (praiskup@redhat.com)
+- Use a different .rpmmacros for install/build time (praiskup@redhat.com)
+- lvm: don't recall set_current_snapshot unnecessarily (praiskup@redhat.com)
+- mock: copy source CA certificates (kdreyer@redhat.com)
+
+* Fri May 22 2020 Pavel Raiskup <praiskup@redhat.com> 2.3-1
+- bindmount resultdir to bootstrap chroot so we can --postinstall from
+  bootstrap (issue #564)
+- fix mount.py plugin configuration (issue #578)
+- better error for dynamic_buildrequires %%prep failure (issue #570)
+- mock: pre-create directory for file bind-mounts (rhbz#1816696)
+- fix doChroot() traceback for getresuid() (issue #571)
+- fix --rootdir option with bootstrap (issue #560)
+- avoid using host rpm _show_installed_packages() (pmatilai@redhat.com, PR#568)
+- expand braced dnf variables in repo url (dmarshall@gmail.com, PR#577)
 
 * Wed Apr 01 2020 Pavel Raiskup <praiskup@redhat.com> 2.2-1
 - depend on mock-configs, not mock-core-configs so users can pick an alternative
