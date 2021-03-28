@@ -1,3 +1,6 @@
+# mock group id allocate for Fedora
+%global mockgid 135
+
 Name:       mock-core-configs
 Version:    34.2
 #Release:    1%%{?dist}
@@ -107,6 +110,11 @@ mock_docs=%{_pkgdocdir}
 mock_docs=${mock_docs//mock-core-configs/mock}
 mock_docs=${mock_docs//-%version/-*}
 sed -i "s~@MOCK_DOCS@~$mock_docs~" %{buildroot}%{_sysconfdir}/mock/site-defaults.cfg
+
+%pre
+# check for existence of mock group, create it if not found
+getent group mock > /dev/null || groupadd -f -g %mockgid -r mock
+exit 0
 
 %post
 if [ -s /etc/os-release ]; then
