@@ -8,7 +8,7 @@ LANG=C
 #
 MOCKS+=epel-7-x86_64
 MOCKS+=epel-8-x86_64
-MOCKS+=fedora-33-x86_64
+MOCKS+=fedora-34-x86_64
 
 #REPOBASEDIR=/var/www/linux/mockrepo
 REPOBASEDIR:=`/bin/pwd`/../mockrepo
@@ -17,7 +17,6 @@ REPOBASEDIR:=`/bin/pwd`/../mockrepo
 SPEC := `ls *.spec | head -1`
 
 # Needed for yum repo updates
-all:: /usr/bin/createrepo
 all:: $(MOCKS)
 
 # Get any tarballs as describe by .spec
@@ -64,18 +63,18 @@ install:: $(MOCKS)
 		*-6-x86_64) yumrelease=el/6; yumarch=x86_64; ;; \
 		*-7-x86_64) yumrelease=el/7; yumarch=x86_64; ;; \
 		*-8-x86_64) yumrelease=el/8; yumarch=x86_64; ;; \
-		*-33-x86_64) yumrelease=fedora/33; yumarch=x86_64; ;; \
-		*-f33-x86_64) yumrelease=fedora/33; yumarch=x86_64; ;; \
+		*-34-x86_64) yumrelease=fedora/34; yumarch=x86_64; ;; \
+		*-f34-x86_64) yumrelease=fedora/34; yumarch=x86_64; ;; \
 		*) echo "Unrecognized release for $$repo, exiting" >&2; exit 1; ;; \
 	    esac; \
 	    rpmdir=$(REPOBASEDIR)/$$yumrelease/$$yumarch; \
 	    srpmdir=$(REPOBASEDIR)/$$yumrelease/SRPMS; \
 	    echo "	Pusning SRPMS to $$srpmdir"; \
 	    rsync $(RSYNCSAFEOPTS) $$repo/*.src.rpm $$srpmdir/. || exit 1; \
-	    createrepo -q $$srpmdir/.; \
+	    createrepo_c -q $$srpmdir/.; \
 	    echo "	Pushing RPMS to $$rpmdir"; \
 	    rsync $(RSYNCSAFEOPTS) --exclude=*.src.rpm --exclude=*debuginfo*.rpm $$repo/*.rpm $$rpmdir/. || exit 1; \
-	    createrepo -q $$rpmdir/.; \
+	    createrepo_c -q $$rpmdir/.; \
 	done
 
 clean::
