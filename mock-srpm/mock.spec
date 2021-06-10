@@ -12,7 +12,7 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 2.9
+Version: 2.11
 #Release: 2%%{?dist}
 Release: 0%{?dist}
 License: GPLv2+
@@ -21,7 +21,7 @@ License: GPLv2+
 # cd mock
 # git reset --hard %%{name}-%%{version}
 # tito build --tgz
-Source: %{name}-%{version}.tar.gz
+Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
 Requires: tar
@@ -277,6 +277,9 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
+* Wed Jun 9 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.11-0
+- Update to 2.11-0
+
 * Tue Jan 26 2021 Fedora Release Engineering <releng@fedoraproject.org> - 2.9-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
 

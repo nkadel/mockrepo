@@ -2,7 +2,7 @@
 %global mockgid 135
 
 Name:       mock-core-configs
-Version:    34.2
+Version:    34.4
 #Release:    1%%{?dist}
 Release:    0%{?dist}
 Summary:    Mock core config files basic chroots
@@ -159,6 +159,9 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Wed Jun 9 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 34.4-0
+- Update to 34.4-0
+
 * Mon Feb 22 2021 Pavel Raiskup <praiskup@redhat.com> 34.2-1
 - configs: use Fedora N-1 gpg keys for ELN (praiskup@redhat.com)
 
