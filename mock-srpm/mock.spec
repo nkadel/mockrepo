@@ -6,13 +6,10 @@
 
 %global __python %{__python3}
 %global python_sitelib %{python3_sitelib}
-%if 0%{?rhel} == 7
-%global python3_pkgversion 36
-%endif
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 2.11
+Version: 2.12
 #Release: 2%%{?dist}
 Release: 0%{?dist}
 License: GPLv2+

@@ -2,7 +2,7 @@
 %global mockgid 135
 
 Name:       mock-core-configs
-Version:    34.4
+Version:    36.1
 #Release:    1%%{?dist}
 Release:    0%{?dist}
 Summary:    Mock core config files basic chroots
