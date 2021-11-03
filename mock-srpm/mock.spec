@@ -9,16 +9,10 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 2.12
-#Release: 2%%{?dist}
+Version: 2.13
 Release: 0%{?dist}
 License: GPLv2+
-# Source is created by
-# git clone https://github.com/rpm-software-management/mock.git
-# cd mock
-# git reset --hard %%{name}-%%{version}
-# tito build --tgz
-Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
+Source: https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}-1.zip
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
 Requires: tar
@@ -139,7 +133,11 @@ Summary:  Mock filesystem layout
 Filesystem layout and group for Mock.
 
 %prep
-%setup -q
+%setup -q -n mock-%{name}-%{version}-1
+rm -rf docs
+mv mock mock.old
+mv mock.old/* mock.old/.gitignore .
+rmdir mock.old
 for file in py/mock.py py/mock-parse-buildlog.py; do
   sed -i 1"s|#!/usr/bin/python3 |#!%{__python} |" $file
 done
