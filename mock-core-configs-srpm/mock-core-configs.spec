@@ -2,19 +2,14 @@
 %global mockgid 135
 
 Name:       mock-core-configs
-Version:    36.1
+Version:    36.3
 #Release:    1%%{?dist}
 Release:    0%{?dist}
 Summary:    Mock core config files basic chroots
 
 License:    GPLv2+
 URL:        https://github.com/rpm-software-management/mock/
-# Source is created by
-# git clone https://github.com/rpm-software-management/mock.git
-# cd mock/mock-core-configs
-# git reset --hard %%{name}-%%{version}
-# tito build --tgz
-Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
+Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}-1.zip
 BuildArch:  noarch
 
 # The mock.rpm requires this.  Other packages may provide this if they tend to
@@ -53,8 +48,10 @@ Config files which allow you to create chroots for:
  * OpenSuse Tumbleweed and Leap
 
 %prep
-%setup -q
-
+# Funky reponame due to funky mock layout
+%setup -q -n mock-%{name}-%{version}-1
+mv mock-core-configs/* .
+rmdir mock-core-configs
 
 %build
 HOST=none
@@ -159,6 +156,10 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Wed Nov  3 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 36.3-0
+- Update to 36.3
+- Use raw .zip file from github rather than repackaging
+
 * Wed Jun 9 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 34.4-0
 - Update to 34.4-0
 
