@@ -139,7 +139,7 @@ mv mock mock.old
 mv mock.old/* mock.old/.gitignore .
 rmdir mock.old
 for file in py/mock.py py/mock-parse-buildlog.py; do
-  sed -i 1"s|#!/usr/bin/python3 |#!%{__python} |" $file
+  sed -i 1"s|#!/usr/bin/python3 |#!%{__python3} |" $file
 done
 
 %build
@@ -272,6 +272,11 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
+* Wed Nov  3 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.13-0
+- Update to 2.13
+- Use raw .zip file from github rather than repackaging
+- Use __python3 instead of __python for .py scripts
+
 * Wed Jun 9 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.11-0
 - Update to 2.11-0
 
