@@ -92,7 +92,7 @@ mockrepo-8-x86_64.cfg: /etc/mock/epel-8-x86_64.cfg
 	@cat $? > $@
 	@sed -i 's/epel-8-x86_64/mockrepo-8-x86_64/g' $@
 	@echo >> $@
-	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
+	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
@@ -110,7 +110,7 @@ mockrepo-f34-x86_64.cfg: /etc/mock/fedora-34-x86_64.cfg
 	@cat $? > $@
 	@sed -i 's/fedora-34-x86_64/mockrepo-f34-x86_64/g' $@
 	@echo >> $@
-	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
+	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
