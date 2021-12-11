@@ -9,7 +9,7 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 2.14
+Version: 2.15
 Release: 0%{?dist}
 License: GPLv2+
 Source: https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}-1.zip
@@ -272,6 +272,9 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
+* Sat Dec 11 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.15-0
+- Update to 2.15
+
 * Wed Nov  3 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.13-0
 - Update to 2.13
 - Use raw .zip file from github rather than repackaging
