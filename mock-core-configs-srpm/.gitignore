@@ -1,1 +1,9 @@
-../.gitignore.epel
+*.out
+*.rpm
+*.tar.*
+*/
+*[0-9]
+*\#*
+*~
+*.zip
+*.zip
