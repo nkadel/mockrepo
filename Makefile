@@ -25,8 +25,8 @@ CFGS+=mockrepo-8-x86_64.cfg
 CFGS+=mockrepo-f34-x86_64.cfg
 
 # Link from /etc/mock
-MOCKCFGS+=epel-7-x86_64.cfg
-MOCKCFGS+=epel-8-x86_64.cfg
+MOCKCFGS+=centos+epel-7-x86_64.cfg
+MOCKCFGS+=centos+epel-8-x86_64.cfg
 MOCKCFGS+=fedora-34-x86_64.cfg
 
 all:: install
@@ -69,10 +69,10 @@ $(REPODIRS): $(REPOS)
 .PHONY: cfg cfgs
 cfg cfgs:: $(CFGS) $(MOCKCFGS)
 
-mockrepo-7-x86_64.cfg: /etc/mock/epel-7-x86_64.cfg
+mockrepo-7-x86_64.cfg: /etc/mock/centos+epel-7-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
-	@sed -i 's/epel-7-x86_64/mockrepo-7-x86_64/g' $@
+	@sed -i 's/centos+epel-7-x86_64/mockrepo-7-x86_64/g' $@
 	@echo >> $@
 	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
@@ -87,10 +87,10 @@ mockrepo-7-x86_64.cfg: /etc/mock/epel-7-x86_64.cfg
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
 
-mockrepo-8-x86_64.cfg: /etc/mock/epel-8-x86_64.cfg
+mockrepo-8-x86_64.cfg: /etc/mock/centos+epel-8-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
-	@sed -i 's/epel-8-x86_64/mockrepo-8-x86_64/g' $@
+	@sed -i 's/centos+epel-8-x86_64/mockrepo-8-x86_64/g' $@
 	@echo >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
