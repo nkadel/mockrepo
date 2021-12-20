@@ -10,9 +10,10 @@
 Summary: Builds packages inside chroots
 Name: mock
 Version: 2.16
-Release: 0%{?dist}
+Release: 0.1%{?dist}
 License: GPLv2+
 Source: https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}-1.zip
+Patch1: mod-2.16-el7-podman.patch
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
 Requires: tar
@@ -134,6 +135,12 @@ Filesystem layout and group for Mock.
 
 %prep
 %setup -q -n mock-%{name}-%{version}-1
+
+# Handle podman on EL7
+%if 0%{?el7}
+%patch1 -p2
+%endif
+
 rm -rf docs
 mv mock mock.old
 mv mock.old/* mock.old/.gitignore .
@@ -272,6 +279,9 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
+* Mon Dec 20 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.15-0.1
+- Patch podman.py to use "--privileged" as needed for EL7, issue 840
+
 * Sat Dec 11 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.15-0
 - Update to 2.15
 

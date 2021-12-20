@@ -1,0 +1,11 @@
+--- ./mock-mock-2.16-1/mock/py/mockbuild/podman.py.bak	2021-12-16 12:57:51.000000000 -0500
++++ ./mock-mock-2.16-1/mock/py/mockbuild/podman.py	2021-12-20 08:53:21.271189078 -0500
+@@ -25,7 +25,7 @@
+     @traceLog()
+     def get_container_id(self):
+         """ start a container and detach immediately """
+-        cmd = ["podman", "run", "--quiet", "-i", "--detach", self.image, "/bin/bash"]
++        cmd = ["podman", "run", "--privileged", "--quiet", "-i", "--detach", self.image, "/bin/bash"]
+         container_id = util.do(cmd, returnOutput=True, env=self.buildroot.env)
+         self.container_id = container_id.strip()
+         return self.container_id
