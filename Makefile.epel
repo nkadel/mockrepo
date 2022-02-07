@@ -7,8 +7,8 @@ LANG=C
 
 #
 MOCKS+=centos+epel-7-x86_64
-MOCKS+=centos+epel-8-x86_64
-MOCKS+=fedora-34-x86_64
+MOCKS+=centos-stream+epel-8-x86_64
+MOCKS+=fedora-35-x86_64
 
 #REPOBASEDIR=/var/www/linux/mockrepo
 REPOBASEDIR:=`/bin/pwd`/../mockrepo
@@ -63,8 +63,8 @@ install:: $(MOCKS)
 		*-6-x86_64) yumrelease=el/6; yumarch=x86_64; ;; \
 		*-7-x86_64) yumrelease=el/7; yumarch=x86_64; ;; \
 		*-8-x86_64) yumrelease=el/8; yumarch=x86_64; ;; \
-		*-34-x86_64) yumrelease=fedora/34; yumarch=x86_64; ;; \
-		*-f34-x86_64) yumrelease=fedora/34; yumarch=x86_64; ;; \
+		*-35-x86_64) yumrelease=fedora/35; yumarch=x86_64; ;; \
+		*-f35-x86_64) yumrelease=fedora/35; yumarch=x86_64; ;; \
 		*) echo "Unrecognized release for $$repo, exiting" >&2; exit 1; ;; \
 	    esac; \
 	    rpmdir=$(REPOBASEDIR)/$$yumrelease/$$yumarch; \
