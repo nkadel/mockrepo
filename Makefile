@@ -15,19 +15,19 @@ MOCKPKGS+=mock-srpm
 
 REPOS+=mockrepo/el/7
 REPOS+=mockrepo/el/8
-REPOS+=mockrepo/fedora/34
+REPOS+=mockrepo/fedora/35
 
 REPODIRS := $(patsubst %,%/x86_64/repodata,$(REPOS)) $(patsubst %,%/SRPMS/repodata,$(REPOS))
 
 # No local dependencies at build time
 CFGS+=mockrepo-7-x86_64.cfg
 CFGS+=mockrepo-8-x86_64.cfg
-CFGS+=mockrepo-f34-x86_64.cfg
+CFGS+=mockrepo-f35-x86_64.cfg
 
 # Link from /etc/mock
 MOCKCFGS+=centos+epel-7-x86_64.cfg
-MOCKCFGS+=centos+epel-8-x86_64.cfg
-MOCKCFGS+=fedora-34-x86_64.cfg
+MOCKCFGS+=centos-stream+epel-8-x86_64.cfg
+MOCKCFGS+=fedora-35-x86_64.cfg
 
 all:: install
 
@@ -71,8 +71,8 @@ cfg cfgs:: $(CFGS) $(MOCKCFGS)
 
 mockrepo-7-x86_64.cfg: /etc/mock/centos+epel-7-x86_64.cfg
 	@echo Generating $@ from $?
-	@cat $? > $@
-	@sed -i 's/centos+epel-7-x86_64/mockrepo-7-x86_64/g' $@
+	@echo "include('$?')" > $@
+	@echo "config_opts['root'] = 'mockrepo-7-x86_64'" >> $@
 	@echo >> $@
 	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
@@ -87,10 +87,10 @@ mockrepo-7-x86_64.cfg: /etc/mock/centos+epel-7-x86_64.cfg
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
 
-mockrepo-8-x86_64.cfg: /etc/mock/centos+epel-8-x86_64.cfg
+mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
-	@sed -i 's/centos+epel-8-x86_64/mockrepo-8-x86_64/g' $@
+	@sed -i 's/centos-stream+epel-8-x86_64/mockrepo-8-x86_64/g' $@
 	@echo >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
@@ -105,16 +105,16 @@ mockrepo-8-x86_64.cfg: /etc/mock/centos+epel-8-x86_64.cfg
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
 
-mockrepo-f34-x86_64.cfg: /etc/mock/fedora-34-x86_64.cfg
+mockrepo-f35-x86_64.cfg: /etc/mock/fedora-35-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
-	@sed -i 's/fedora-34-x86_64/mockrepo-f34-x86_64/g' $@
+	@sed -i 's/fedora-35-x86_64/mockrepo-f35-x86_64/g' $@
 	@echo >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
-	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/34/x86_64/' >> $@
+	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/35/x86_64/' >> $@
 	@echo 'failovermethod=priority' >> $@
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
