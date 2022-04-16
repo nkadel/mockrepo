@@ -79,7 +79,6 @@ mockrepo-7-x86_64.cfg: /etc/mock/centos+epel-7-x86_64.cfg
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
 	@echo 'baseurl=file://$(PWD)/mockrepo/el/7/x86_64/' >> $@
-	@echo 'failovermethod=priority' >> $@
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
 	@echo 'gpgcheck=0' >> $@
@@ -97,7 +96,6 @@ mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
 	@echo 'baseurl=file://$(PWD)/mockrepo/el/8/x86_64/' >> $@
-	@echo 'failovermethod=priority' >> $@
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
 	@echo 'gpgcheck=0' >> $@
@@ -115,7 +113,6 @@ mockrepo-f35-x86_64.cfg: /etc/mock/fedora-35-x86_64.cfg
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
 	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/35/x86_64/' >> $@
-	@echo 'failovermethod=priority' >> $@
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
 	@echo 'gpgcheck=0' >> $@

@@ -9,11 +9,10 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 2.16
-Release: 0.2%{?dist}
+Version: 3.0
+Release: 0.1%{?dist}
 License: GPLv2+
 Source: https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}-1.zip
-Patch1: mod-2.16-el7-podman.patch
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
 Requires: tar
@@ -136,11 +135,6 @@ Filesystem layout and group for Mock.
 %prep
 %setup -q -n mock-%{name}-%{version}-1
 
-# Handle podman on EL7
-%if 0%{?el7}
-%patch1 -p2
-%endif
-
 rm -rf docs
 mv mock mock.old
 mv mock.old/* mock.old/.gitignore .
@@ -239,9 +233,7 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 # python stuff
 %{python_sitelib}/*
 %exclude %{python_sitelib}/mockbuild/scm.*
-%exclude %{python_sitelib}/mockbuild/__pycache__/scm.*
-%exclude %{python_sitelib}/mockbuild/plugins/lvm_root.*
-%exclude %{python_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*
+%{python_sitelib}/mockbuild/plugins/lvm_root.*
 
 # config files
 %config(noreplace) %{_sysconfdir}/%{name}/*.ini
@@ -264,11 +256,9 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 
 %files scm
 %{python_sitelib}/mockbuild/scm.py*
-%{python3_sitelib}/mockbuild/__pycache__/scm.*.py*
 
 %files lvm
 %{python_sitelib}/mockbuild/plugins/lvm_root.*
-%{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
 
 %files filesystem
 %license COPYING
@@ -279,6 +269,9 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
+* Sat Apr 16 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 3.0-0
+- Update to 3.0, discard podman patch
+
 * Mon Dec 20 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.15-0.1
 - Patch podman.py to use "--privileged" as needed for EL7, issue 840
 

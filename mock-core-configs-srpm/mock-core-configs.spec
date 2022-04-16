@@ -2,7 +2,7 @@
 %global mockgid 135
 
 Name:       mock-core-configs
-Version:    37.2
+Version:    37.3
 Release:    0%{?dist}
 Summary:    Mock core config files basic chroots
 
@@ -155,6 +155,9 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Sat Apr 16 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 37.3-0
+- Update to 37.3
+
 * Sun Mar 6 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 37.2-0
 - Update to 37.2
 
