@@ -15,19 +15,20 @@ MOCKPKGS+=mock-srpm
 
 REPOS+=mockrepo/el/7
 REPOS+=mockrepo/el/8
-REPOS+=mockrepo/fedora/35
+REPOS+=mockrepo/el/9
+REPOS+=mockrepo/fedora/36
 
 REPODIRS := $(patsubst %,%/x86_64/repodata,$(REPOS)) $(patsubst %,%/SRPMS/repodata,$(REPOS))
 
 # No local dependencies at build time
-CFGS+=mockrepo-7-x86_64.cfg
 CFGS+=mockrepo-8-x86_64.cfg
-CFGS+=mockrepo-f35-x86_64.cfg
+CFGS+=mockrepo-9-x86_64.cfg
+CFGS+=mockrepo-f36-x86_64.cfg
 
 # Link from /etc/mock
-MOCKCFGS+=centos+epel-7-x86_64.cfg
 MOCKCFGS+=centos-stream+epel-8-x86_64.cfg
-MOCKCFGS+=fedora-35-x86_64.cfg
+MOCKCFGS+=centos-stream+epel-9-x86_64.cfg
+MOCKCFGS+=fedora-36-x86_64.cfg
 
 all:: install
 
@@ -69,28 +70,16 @@ $(REPODIRS): $(REPOS)
 .PHONY: cfg cfgs
 cfg cfgs:: $(CFGS) $(MOCKCFGS)
 
-mockrepo-7-x86_64.cfg: /etc/mock/centos+epel-7-x86_64.cfg
-	@echo Generating $@ from $?
-	@echo "include('$?')" > $@
-	@echo "config_opts['root'] = 'mockrepo-7-x86_64'" >> $@
-	@echo >> $@
-	@echo "config_opts['yum.conf'] += \"\"\"" >> $@
-	@echo '[mockrepo]' >> $@
-	@echo 'name=mockrepo' >> $@
-	@echo 'enabled=1' >> $@
-	@echo 'baseurl=file://$(PWD)/mockrepo/el/7/x86_64/' >> $@
-	@echo 'skip_if_unavailable=False' >> $@
-	@echo 'metadata_expire=1' >> $@
-	@echo 'gpgcheck=0' >> $@
-	@echo 'priority=5' >> $@
-	@echo '#cost=2000' >> $@
-	@echo '"""' >> $@
-
 mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
 	@sed -i 's/centos-stream+epel-8-x86_64/mockrepo-8-x86_64/g' $@
 	@echo >> $@
+	@echo Resetting root directory
+	@echo "config_opts['root'] = 'mockrepo-{{ releasever }}-{{ target_arch }}'" >> $@
+	@echo "Disabling 'best=' for $@"
+	@sed -i '/^best=/d' $@
+	@echo "best=0" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
@@ -103,16 +92,43 @@ mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
 
-mockrepo-f35-x86_64.cfg: /etc/mock/fedora-35-x86_64.cfg
+mockrepo-9-x86_64.cfg: /etc/mock/centos-stream+epel-9-x86_64.cfg
 	@echo Generating $@ from $?
 	@cat $? > $@
-	@sed -i 's/fedora-35-x86_64/mockrepo-f35-x86_64/g' $@
+	@sed -i 's/centos-stream+epel-9-x86_64/mockrepo-9-x86_64/g' $@
 	@echo >> $@
+	@echo Resetting root directory
+	@echo "config_opts['root'] = 'mockrepo-{{ releasever }}-{{ target_arch }}'" >> $@
+	@echo "Disabling 'best=' for $@"
+	@sed -i '/^best=/d' $@
+	@echo "best=0" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
-	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/35/x86_64/' >> $@
+	@echo 'baseurl=file://$(PWD)/mockrepo/el/9/x86_64/' >> $@
+	@echo 'skip_if_unavailable=False' >> $@
+	@echo 'metadata_expire=1' >> $@
+	@echo 'gpgcheck=0' >> $@
+	@echo 'priority=5' >> $@
+	@echo '#cost=2000' >> $@
+	@echo '"""' >> $@
+
+mockrepo-f36-x86_64.cfg: /etc/mock/fedora-36-x86_64.cfg
+	@echo Generating $@ from $?
+	@cat $? > $@
+	@sed -i 's/fedora-36-x86_64/mockrepo-f36-x86_64/g' $@
+	@echo >> $@
+	@echo Resetting root directory
+	@echo "config_opts['root'] = 'ansiblerepo-f{{ releasever }}-{{ target_arch }}'" >> $@
+	@echo "Disabling 'best=' for $@"
+	@sed -i '/^best=/d' $@
+	@echo "best=0" >> $@
+	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
+	@echo '[mockrepo]' >> $@
+	@echo 'name=mockrepo' >> $@
+	@echo 'enabled=1' >> $@
+	@echo 'baseurl=file://$(PWD)/mockrepo/fedora/36/x86_64/' >> $@
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
 	@echo 'gpgcheck=0' >> $@
