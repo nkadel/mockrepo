@@ -13,7 +13,6 @@ REPOBASE=file://$(PWD)
 MOCKPKGS+=mock-core-configs-srpm
 MOCKPKGS+=mock-srpm
 
-REPOS+=mockrepo/el/7
 REPOS+=mockrepo/el/8
 REPOS+=mockrepo/el/9
 REPOS+=mockrepo/fedora/36

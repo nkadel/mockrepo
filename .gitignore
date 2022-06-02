@@ -1,5 +1,6 @@
 *.cfg
 *.out
+*.repo
 *.rpm
 *.tar.*
 *[0-9]

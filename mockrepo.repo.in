@@ -1,0 +1,13 @@
+[mockrepo]
+name=Mock local repo - $basearch
+baseurl=file://@REPOBASEDIR@/mockrepo/@RELEASEDIR@/$releasever/$basearch
+enabled=0
+gpgcheck=0
+metadata_expire=1
+
+[mockrepo-source]
+name=Mock local repo - Source
+baseurl=file://@REPOBASEDIR@/mockrepo/@RELEASEDIR@/$releasever/SRPMS/
+enabled=0
+gpgcheck=0
+metadata_expire=1
