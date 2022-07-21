@@ -69,16 +69,15 @@ $(REPODIRS): $(REPOS)
 .PHONY: cfg cfgs
 cfg cfgs:: $(CFGS) $(MOCKCFGS)
 
+$(MOCKCFGS)::
+	@echo Generating $@ from /etc/mock/$@
+	@echo "include('/etc/mock/$@')" | tee $@
+
 mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 	@echo Generating $@ from $?
-	@cat $? > $@
-	@sed -i 's/centos-stream+epel-8-x86_64/mockrepo-8-x86_64/g' $@
-	@echo >> $@
+	@echo "include('$?')" | tee $@
 	@echo Resetting root directory
 	@echo "config_opts['root'] = 'mockrepo-{{ releasever }}-{{ target_arch }}'" >> $@
-	@echo "Disabling 'best=' for $@"
-	@sed -i '/^best=/d' $@
-	@echo "best=0" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
@@ -93,14 +92,9 @@ mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 
 mockrepo-9-x86_64.cfg: /etc/mock/centos-stream+epel-9-x86_64.cfg
 	@echo Generating $@ from $?
-	@cat $? > $@
-	@sed -i 's/centos-stream+epel-9-x86_64/mockrepo-9-x86_64/g' $@
-	@echo >> $@
+	@echo "include('$?')" | tee $@
 	@echo Resetting root directory
 	@echo "config_opts['root'] = 'mockrepo-{{ releasever }}-{{ target_arch }}'" >> $@
-	@echo "Disabling 'best=' for $@"
-	@sed -i '/^best=/d' $@
-	@echo "best=0" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
@@ -115,14 +109,9 @@ mockrepo-9-x86_64.cfg: /etc/mock/centos-stream+epel-9-x86_64.cfg
 
 mockrepo-f36-x86_64.cfg: /etc/mock/fedora-36-x86_64.cfg
 	@echo Generating $@ from $?
-	@cat $? > $@
-	@sed -i 's/fedora-36-x86_64/mockrepo-f36-x86_64/g' $@
-	@echo >> $@
+	@echo "include('$?')" | tee $@
 	@echo Resetting root directory
 	@echo "config_opts['root'] = 'ansiblerepo-f{{ releasever }}-{{ target_arch }}'" >> $@
-	@echo "Disabling 'best=' for $@"
-	@sed -i '/^best=/d' $@
-	@echo "best=0" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
 	@echo 'name=mockrepo' >> $@
@@ -134,10 +123,6 @@ mockrepo-f36-x86_64.cfg: /etc/mock/fedora-36-x86_64.cfg
 	@echo 'priority=5' >> $@
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
-
-$(MOCKCFGS)::
-	ln -sf --no-dereference /etc/mock/$@ $@
-
 
 repo: mockrepo.repo
 mockrepo.repo:: Makefile mockrepo.repo.in
