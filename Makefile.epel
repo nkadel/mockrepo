@@ -43,7 +43,7 @@ build:: src.rpm
 
 .PHONY: $(MOCKS)
 $(MOCKS)::
-	@if [ -e $@ -a -n "`find $@ -name \*.rpm`" ]; then \
+	@if [ -e $@ -a -n "`find $@ -name '*.rpm' ! -name '*.src.rpm' 2>/dev/null`" ]; then \
 		echo "	Skipping RPM populated $@"; \
 	else \
 		echo "Actally building $? in $@"; \
