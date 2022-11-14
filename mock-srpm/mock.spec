@@ -9,7 +9,7 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 3.2
+Version: 3.3
 Release: 0.1%{?dist}
 License: GPLv2+
 Source: https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}-1.zip
@@ -269,6 +269,9 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
+* Mon Nov 14 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 3.3-0.1
+- Update to 3.3
+
 * Sat Apr 16 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 3.0-0
 - Update to 3.0, discard podman patch
 
