@@ -1,14 +1,17 @@
 # mock group id allocate for Fedora
 %global mockgid 135
 
+# Because tags include dangling -1, for no valid reasion
+%global versionsuffix -1
+
 Name:       mock-core-configs
 Version:    37.8
-Release:    0%{?dist}
+Release:    0.1%{?dist}
 Summary:    Mock core config files basic chroots
 
 License:    GPLv2+
 URL:        https://github.com/rpm-software-management/mock/
-Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}-1.zip
+Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}%{?versionsuffix}.zip
 BuildArch:  noarch
 
 # The mock.rpm requires this.  Other packages may provide this if they tend to
@@ -24,10 +27,10 @@ Requires:   mock-filesystem
 Requires(post): coreutils
 %if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} > 7
 # to detect correct default.cfg
-Requires(post): python3-dnf
-Requires(post): python3-hawkey
+Requires(post): python%{python3_pkgversion}-dnf
+Requires(post): python%{python3_pkgversion}-hawkey
 Requires(post): system-release
-Requires(post): python3
+Requires(post): python%{python3_pkgversion}
 Requires(post): sed
 %endif
 Requires(pre):  shadow-utils
@@ -48,7 +51,7 @@ Config files which allow you to create chroots for:
 
 %prep
 # Funky reponame due to funky mock layout
-%setup -q -n mock-%{name}-%{version}-1
+%setup -q -n mock-%{name}-%{version}%{?versionsuffix}
 mv mock-core-configs/* .
 rmdir mock-core-configs
 
@@ -133,7 +136,7 @@ fi
 if [ -s /etc/mageia-release ]; then
     mock_arch=$(sed -n '/^$/!{$ s/.* \(\w*\)$/\1/p}' /etc/mageia-release)
 else
-    mock_arch=$(python3 -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
+    mock_arch=$(%{__python3} -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
 fi
 %else
 mock_arch=$(python -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
@@ -155,6 +158,12 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Thu Dec 29 2022 Nico Kadel-Garcia <nkadel@gmail.com> 37.8-1
+- Provide working URL for Source
+- Use %%{name} subdirectory in upstream, mock and mock-core-configs
+  merged git repo
+- Use python macros consistently
+
 * Wed Jun 1 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 37.4-0
 - Update to 37.4
 
