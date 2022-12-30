@@ -4,15 +4,15 @@
 # mock group id allocate for Fedora
 %global mockgid 135
 
-%global __python %{__python3}
-%global python_sitelib %{python3_sitelib}
+# Because tags include dangling -1, for no valid reasion
+%global versionsuffix -1
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 3.3
-Release: 0.1%{?dist}
-License: GPLv2+
-Source: https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}-1.zip
+Version: 3.5
+Release: 1%{?dist}
+License: GPL-2.0-or-later
+Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}%{?versionsuffix}.zip
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
 Requires: tar
@@ -48,17 +48,17 @@ Suggests: iproute
 Suggests: iproute2
 %endif
 BuildRequires: bash-completion
+BuildRequires: python%{python3_pkgversion}
+BuildRequires: python%{python3_pkgversion}-devel
+%if %{with lint}
+BuildRequires: python%{python3_pkgversion}-pylint
+%endif
 Requires: python%{python3_pkgversion}-distro
 Requires: python%{python3_pkgversion}-jinja2
 Requires: python%{python3_pkgversion}-requests
 Requires: python%{python3_pkgversion}-rpm
 Requires: python%{python3_pkgversion}-pyroute2
 Requires: python%{python3_pkgversion}-templated-dictionary
-BuildRequires: python%{python3_pkgversion}-devel
-%if %{with lint}
-BuildRequires: python%{python3_pkgversion}-pylint
-%endif
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} >= 8
 Requires: dnf
 Suggests: yum
 Requires: dnf-plugins-core
@@ -67,20 +67,12 @@ Recommends: dnf-utils
 Suggests: qemu-user-static
 Suggests: procenv
 Suggests: podman
-%else
-%if 0%{?rhel} == 7
-Requires: btrfs-progs
-Requires: yum >= 2.4
-Requires: yum-utils
-%endif
-%endif
 
 %if %{with tests}
 BuildRequires: python%{python3_pkgversion}-distro
 BuildRequires: python%{python3_pkgversion}-jinja2
 BuildRequires: python%{python3_pkgversion}-pyroute2
 BuildRequires: python%{python3_pkgversion}-pytest
-BuildRequires: python%{python3_pkgversion}-pytest-cov
 BuildRequires: python%{python3_pkgversion}-requests
 BuildRequires: python%{python3_pkgversion}-templated-dictionary
 %endif
@@ -102,17 +94,13 @@ Mock takes an SRPM and builds it in a chroot.
 %package scm
 Summary: Mock SCM integration module
 Requires: %{name} = %{version}-%{release}
-%if 0%{?rhel} && 0%{?rhel} < 8
-Requires: cvs
-Requires: git
-Requires: subversion
-Requires: tar
-%else
 Recommends: cvs
 Recommends: git
 Recommends: subversion
 Recommends: tar
-%endif
+
+# We could migrate to 'copr-distgit-client'
+Recommends: rpkg
 
 %description scm
 Mock SCM integration module.
@@ -128,27 +116,25 @@ of the buildroot.
 
 %package filesystem
 Summary:  Mock filesystem layout
+Requires(pre):  shadow-utils
 
 %description filesystem
 Filesystem layout and group for Mock.
 
 %prep
-%setup -q -n mock-%{name}-%{version}-1
-
-rm -rf docs
-mv mock mock.old
-mv mock.old/* mock.old/.gitignore .
-rmdir mock.old
+%setup -q -n %{name}-%{name}-%{version}%{?versionsuffix}
+cd %{name}
 for file in py/mock.py py/mock-parse-buildlog.py; do
   sed -i 1"s|#!/usr/bin/python3 |#!%{__python3} |" $file
 done
 
 %build
-for i in py/mock.py py/mock-parse-buildlog.py; do
-    perl -p -i -e 's|^__VERSION__\s*=.*|__VERSION__="%{version}"|' $i
+cd %{name}
+for i in py/mockbuild/constants.py py/mock-parse-buildlog.py; do
+    perl -p -i -e 's|^VERSION\s*=.*|VERSION="%{version}"|' $i
     perl -p -i -e 's|^SYSCONFDIR\s*=.*|SYSCONFDIR="%{_sysconfdir}"|' $i
-    perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python_sitelib}"|' $i
-    perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python_sitelib}/mockbuild"|' $i
+    perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python3_sitelib}"|' $i
+    perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python3_sitelib}/mockbuild"|' $i
 done
 for i in docs/mock.1 docs/mock-parse-buildlog.1; do
     perl -p -i -e 's|\@VERSION\@|%{version}"|' $i
@@ -156,6 +142,7 @@ done
 
 %install
 #base filesystem
+cd %{name}
 mkdir -p %{buildroot}%{_sysconfdir}/mock/eol/templates
 mkdir -p %{buildroot}%{_sysconfdir}/mock/templates
 
@@ -183,8 +170,8 @@ ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildl
 install -d %{buildroot}%{_sysconfdir}/pki/mock
 cp -a etc/pki/* %{buildroot}%{_sysconfdir}/pki/mock/
 
-install -d %{buildroot}%{python_sitelib}/
-cp -a py/mockbuild %{buildroot}%{python_sitelib}/
+install -d %{buildroot}%{python3_sitelib}/
+cp -a py/mockbuild %{buildroot}%{python3_sitelib}/
 
 install -d %{buildroot}%{_mandir}/man1
 cp -a docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
@@ -206,13 +193,14 @@ getent group mock > /dev/null || groupadd -f -g %mockgid -r mock
 exit 0
 
 %check
+cd %{name}
 %if %{with lint}
 # ignore the errors for now, just print them and hopefully somebody will fix it one day
 pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %endif
 
 %if %{with tests}
-./run-tests.sh
+./run-tests.sh --no-cov
 %endif
 
 
@@ -231,9 +219,11 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %{_libexecdir}/mock
 
 # python stuff
-%{python_sitelib}/*
-%exclude %{python_sitelib}/mockbuild/scm.*
-%{python_sitelib}/mockbuild/plugins/lvm_root.*
+%{python3_sitelib}/*
+%exclude %{python3_sitelib}/mockbuild/scm.*
+%exclude %{python3_sitelib}/mockbuild/__pycache__/scm.*
+%exclude %{python3_sitelib}/mockbuild/plugins/lvm_root.*
+%exclude %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*
 
 # config files
 %config(noreplace) %{_sysconfdir}/%{name}/*.ini
@@ -250,18 +240,20 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %{_datadir}/cheat/mock
 
 # cache & build dirs
-%defattr(0775, root, mock, 02775)
+%defattr(0775, root, mock, 0775)
 %dir %{_localstatedir}/cache/mock
 %dir %{_localstatedir}/lib/mock
 
 %files scm
-%{python_sitelib}/mockbuild/scm.py*
+%{python3_sitelib}/mockbuild/scm.py*
+%{python3_sitelib}/mockbuild/__pycache__/scm.*.py*
 
 %files lvm
-%{python_sitelib}/mockbuild/plugins/lvm_root.*
+%{python3_sitelib}/mockbuild/plugins/lvm_root.*
+%{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
 
 %files filesystem
-%license COPYING
+%license %{name}/COPYING
 %dir  %{_sysconfdir}/mock
 %dir  %{_sysconfdir}/mock/eol
 %dir  %{_sysconfdir}/mock/eol/templates
@@ -269,28 +261,97 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
-* Mon Nov 14 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 3.3-0.1
-- Update to 3.3
+* Fri Dec 30 2022 Nico Kadel-Garcia
+- Use valid Source URL from github.com
+- Enter %%{name} supdirectory for compilation
 
-* Sat Apr 16 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 3.0-0
-- Update to 3.0, discard podman patch
+* Thu Dec 01 2022 Pavel Raiskup <praiskup@redhat.com> 3.5-1
+- check for qemu-user-static raises InvalidArchitecture()
+- forcearch: map armv7hl to the /usr/bin/qemu-arm-static binary
+- more pedantic check for the qemu-*-static binaries
 
-* Mon Dec 20 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.15-0.1
-- Patch podman.py to use "--privileged" as needed for EL7, issue 840
+* Tue Nov 15 2022 Pavel Raiskup <praiskup@redhat.com> 3.4-1
+- make device mapper control device available if supported (neal@gompa.dev)
+- check for target specific qemu-user-static (msuchy@redhat.com)
 
-* Sat Dec 11 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.15-0
-- Update to 2.15
+* Mon Oct 17 2022 Pavel Raiskup <praiskup@redhat.com> 3.3-1
+- re-allow running mock as root, rhbz#2135203
 
-* Wed Nov  3 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.13-0
-- Update to 2.13
-- Use raw .zip file from github rather than repackaging
-- Use __python3 instead of __python for .py scripts
+* Fri Oct 14 2022 Pavel Raiskup <praiskup@redhat.com> 3.2-1
+- Fix the docker environment check for cgroupv2 (achal.velani@oracle.com)
+- mock-scm: recommend rpkg-util
+- don't use rpmbuild --noclean option if not supported
+- do only one fork() while reading --list-chroots configs
+- Error() (exceptions) code rewritten and simplified
+- dropped mock SGID from /var/{lib,cache}/mock dirs
+- change license to spdx (msuchy@redhat.com)
+- podman.py: don't let podman warnings taint container id (micho@redhat.com)
 
-* Wed Jun 9 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 2.11-0
-- Update to 2.11-0
+* Fri Jul 22 2022 Pavel Raiskup <praiskup@redhat.com> 3.1-1
+- let rpmbuild know that it should not clean up after itself (msuchy@redhat.com)
+- typo in the subscription error message
+- root_cache: simplify decompressing with BSD tar
+- switch from /bin/gtar to /bin/tar by default
 
-* Tue Jan 26 2021 Fedora Release Engineering <releng@fedoraproject.org> - 2.9-2
-- Rebuilt for https://fedoraproject.org/wiki/Fedora_34_Mass_Rebuild
+* Wed Apr 06 2022 Pavel Raiskup <praiskup@redhat.com> 3.0-1
+- mock v3 contains several Python 2.7 (EL7) incompatibilites
+  https://github.com/rpm-software-management/mock/issues/755
+- disable SECCOMP for Podman by default
+- opt in for SECCOMP invented
+- create simple_load_config() for use in 3rd party SW (msuchy@redhat.com)
+- implement --list-chroots command (msuchy@redhat.com)
+- add cachedir to output of hw_info plugin (msuchy@redhat.com)
+- mock: copy /usr/share/pki source CA certificates (dereks@lifeofadishwasher.com)
+- add missing args for --scrub and --short-circuit into bash
+  completion (didiksupriadi41@fedoraproject.org)
+- remove el7 specific parts from the spec file (msuchy@redhat.com)
+
+* Thu Dec 16 2021 Pavel Raiskup <praiskup@redhat.com> 2.16-1
+- disable system call filtering
+- pass env to podman run (dani@lapiole.org)
+- give user alternative help for missing 'epel-8-*' configs
+- podman, explictily specify stdin as tar source (vreeland.justin@gmail.com)
+- add a new 'ssl_extra_certs' option (patrick@laimbock.com)
+
+* Thu Nov 18 2021 Pavel Raiskup <praiskup@redhat.com> 2.15-1
+- argparse: handle old-style commands *before* ignoring "--" (awilliam@redhat.com)
+- Update mock.1 (cheese@nosuchhost.net)
+
+* Thu Nov 04 2021 Pavel Raiskup <praiskup@redhat.com> 2.14-1
+- fixed broken --enablerepo/--disablerepo options
+
+* Mon Nov 01 2021 Pavel Raiskup <praiskup@redhat.com> 2.13-1
+- local repositories to use gpgcheck=0 by default
+- A new option --additional-package (for --rebuild)
+- external-deps: install pip packages to /usr
+- Install external deps into build chroot, not bootstrap
+- Migrate from optparse to argparse
+- mock: don't specify SOURCE when remounting bind-mounts
+- mock: add option --debug-config-expanded (sergio@serjux.com)
+- Fix use of deprecated function (xfgusta@gmail.com)
+- lvm_root: fix copy/paste error in a warning message (kdudka@redhat.com)
+
+* Mon Jul 19 2021 Pavel Raiskup <praiskup@redhat.com> 2.12-1
+- don't set --cwd for --shell when we know it will fail (el7)
+- explicitly convert macro values to str (logans@cottsay.net)
+- disable versionlock DNF plugin by default (igor.raits@gmail.com)
+- move Requires of shadow-utils from mock-core-configs to mock-filesystem
+  (msuchy@redhat.com)
+
+* Tue Jun 08 2021 Pavel Raiskup <praiskup@redhat.com> 2.11-1
+- mock: fix broken --help output
+- compress_logs: compress also after repo failures
+- move to libera.chat (msuchy@redhat.com)
+- Define _platform_multiplier macro (msuchy@redhat.com)
+- allow to --install external:* (msuchy@redhat.com)
+- move installation of external:* to separate function (msuchy@redhat.com)
+- honor --cwd for --shell (msuchy@redhat.com)
+
+* Tue Apr 27 2021 Pavel Raiskup <praiskup@redhat.com> 2.10-1
+- do not allocate tty for podman (msuchy@redhat.com)
+- work-around bug setting propagation for recursive bind-mounts (david.ward@ll.mit.edu)
+- fix handling of essential mountpoints (david.ward@ll.mit.edu)
+- pre-create the dest directory in _copy_config
 
 * Mon Jan 18 2021 Pavel Raiskup <praiskup@redhat.com> 2.9-1
 - rpkg_preprocessor: Add a force_enable option (tstellar@redhat.com)
