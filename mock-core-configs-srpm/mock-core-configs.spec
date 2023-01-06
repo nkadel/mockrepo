@@ -5,7 +5,7 @@
 %global versionsuffix -1
 
 Name:       mock-core-configs
-Version:    37.8
+Version:    37.9
 Release:    0.1%{?dist}
 Summary:    Mock core config files basic chroots
 
@@ -158,6 +158,9 @@ fi
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
+* Fri Jan 5 2023 Nico Kadel-Garcia <nkadel@gmail.com> 37.9-1
+- Update to 37.9-1
+
 * Thu Dec 29 2022 Nico Kadel-Garcia <nkadel@gmail.com> 37.8-1
 - Provide working URL for Source
 - Use %%{name} subdirectory in upstream, mock and mock-core-configs
