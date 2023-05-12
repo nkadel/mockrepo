@@ -5,7 +5,7 @@
 %global versionsuffix -1
 
 Name:       mock-core-configs
-Version:    37.9
+Version:    38.4
 Release:    0.1%{?dist}
 Summary:    Mock core config files basic chroots
 
