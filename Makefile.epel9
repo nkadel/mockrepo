@@ -5,18 +5,17 @@
 # Assure that sorting is case sensitive
 LANG=C
 
-MOCKCFGS+=mockrepo-8-x86_64
+#MOCKCFGS+=mockrepo-8-x86_64
 MOCKCFGS+=mockrepo-9-x86_64
-MOCKCFGS+=mockrepo-f38-x86_64
-MOCKCFGS+=mockrepo-amz2023-x86_64
+#MOCKCFGS+=mockrepo-f38-x86_64
+#MOCKCFGS+=mockrepo-amz2023-x86_64
 
 #
-MOCKS+=centos-stream+epel-8-x86_64
+#MOCKS+=centos-stream+epel-8-x86_64
 MOCKS+=centos-stream+epel-9-x86_64
-MOCKS+=fedora-38-x86_64
-MOCKS+=amazonlinux-2023-x86_64
+#MOCKS+=fedora-38-x86_64
+#MOCKS+=amazon-2023-x86_64
 
-#REPOBASEDIR=/var/www/linux/mockrepo
 REPOBASEDIR:=`/bin/pwd`/../mockrepo
 
 # Deduce local package names and .spec files, for universe Makefile use
@@ -71,8 +70,8 @@ install:: $(MOCKS)
 		*-9-x86_64) yumrelease=el/9; yumarch=x86_64; ;; \
 		*-38-x86_64) yumrelease=fedora/38; yumarch=x86_64; ;; \
 		*-f38-x86_64) yumrelease=fedora/38; yumarch=x86_64; ;; \
-		*-amz2023-x86_64) yumrelease=amazon/2023; yumarch=x86_64; ;; \
-		*-2023-x86_64) yumrelease=amazon/2023; yumarch=x86_64; ;; \
+		*-amz2023-x86_64) yumrelease=amazon/38; yumarch=x86_64; ;; \
+		*-2023-x86_64) yumrelease=amazon/38; yumarch=x86_64; ;; \
 		*) echo "Unrecognized release for $$repo, exiting" >&2; exit 1; ;; \
 	    esac; \
 	    rpmdir=$(REPOBASEDIR)/$$yumrelease/$$yumarch; \

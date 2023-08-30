@@ -5,16 +5,11 @@
 # Assure that sorting is case sensitive
 LANG=C
 
-MOCKCFGS+=mockrepo-8-x86_64
-MOCKCFGS+=mockrepo-9-x86_64
-MOCKCFGS+=mockrepo-f38-x86_64
-MOCKCFGS+=mockrepo-amz2023-x86_64
-
 #
 MOCKS+=centos-stream+epel-8-x86_64
 MOCKS+=centos-stream+epel-9-x86_64
-MOCKS+=fedora-38-x86_64
-MOCKS+=amazonlinux-2023-x86_64
+#MOCKS+=fedora-38-x86_64
+#MOCKS+=amazon-2023-x86_64
 
 #REPOBASEDIR=/var/www/linux/mockrepo
 REPOBASEDIR:=`/bin/pwd`/../mockrepo
@@ -83,10 +78,6 @@ install:: $(MOCKS)
 	    echo "	Pushing RPMS to $$rpmdir"; \
 	    rsync $(RSYNCSAFEOPTS) --exclude=*.src.rpm --exclude=*debuginfo*.rpm $$repo/*.rpm $$rpmdir/. || exit 1; \
 	    createrepo_c -q $$rpmdir/.; \
-	done
-	@for repo in $(MOCKCFGS); do \
-	    echo "Touching $(PWD)/../$$repo.cfg"; \
-	    /bin/touch --no-dereference $(PWD)/../$$repo.cfg; \
 	done
 
 clean::

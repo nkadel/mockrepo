@@ -5,15 +5,15 @@
 # Assure that sorting is case sensitive
 LANG=C
 
-MOCKCFGS+=mockrepo-8-x86_64
-MOCKCFGS+=mockrepo-9-x86_64
-MOCKCFGS+=mockrepo-f38-x86_64
+#MOCKCFGS+=mockrepo-8-x86_64
+#MOCKCFGS+=mockrepo-9-x86_64
+#MOCKCFGS+=mockrepo-f38-x86_64
 MOCKCFGS+=mockrepo-amz2023-x86_64
 
 #
-MOCKS+=centos-stream+epel-8-x86_64
-MOCKS+=centos-stream+epel-9-x86_64
-MOCKS+=fedora-38-x86_64
+#MOCKS+=centos-stream+epel-8-x86_64
+#MOCKS+=centos-stream+epel-9-x86_64
+#MOCKS+=fedora-38-x86_64
 MOCKS+=amazonlinux-2023-x86_64
 
 #REPOBASEDIR=/var/www/linux/mockrepo

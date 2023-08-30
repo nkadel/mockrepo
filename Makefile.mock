@@ -1,32 +1,25 @@
 #
-# Build mock and local RPM versions of tools for Samba
+# Build mock and local RPM versions of tools for mock
 #
 
 # Assure that sorting is case sensitive
 LANG=C
 
-MOCKCFGS+=mockrepo-8-x86_64
-MOCKCFGS+=mockrepo-9-x86_64
-MOCKCFGS+=mockrepo-f38-x86_64
-MOCKCFGS+=mockrepo-amz2023-x86_64
+MOCKS+=mockrepo-f38-x86_64
+MOCKS+=mockrepo-9-x86_64
+MOCKS+=mockrepo-8-x86_64
+MOCKS+=mockrepo-amz2023-x86_64
 
-#
-MOCKS+=centos-stream+epel-8-x86_64
-MOCKS+=centos-stream+epel-9-x86_64
-MOCKS+=fedora-38-x86_64
-MOCKS+=amazonlinux-2023-x86_64
+MOCKCFGS+=$(MOCKS)
 
-#REPOBASEDIR=/var/www/linux/mockrepo
 REPOBASEDIR:=`/bin/pwd`/../mockrepo
 
-# Deduce local package names and .spec files, for universe Makefile use
-SPEC := `ls *.spec | head -1`
+SPEC := `ls *.spec`
 
-# Needed for yum repo updates
 all:: $(MOCKS)
 
-# Get any tarballs as describe by .spec
-getsrc:
+.PHONY: getsrc
+getsrc::
 	spectool -g $(SPEC)
 
 srpm:: src.rpm
@@ -51,7 +44,7 @@ $(MOCKS)::
 	@if [ -e $@ -a -n "`find $@ -name '*.rpm' ! -name '*.src.rpm' 2>/dev/null`" ]; then \
 		echo "	Skipping RPM populated $@"; \
 	else \
-		echo "Actally building $(SPEC) in $@"; \
+		echo "Actally building $? in $@"; \
 		rm -rf $@; \
 		mock -q -r $(PWD)/../$@.cfg \
 		    --sources $(PWD) --spec $(SPEC) \
@@ -60,29 +53,27 @@ $(MOCKS)::
 
 mock:: $(MOCKS)
 
-mock:: $(MOCKS)
-
 install:: $(MOCKS)
 	@for repo in $(MOCKS); do \
 	    echo Installing $$repo; \
 	    case $$repo in \
-		*-7-x86_64) yumrelease=el/7; yumarch=x86_64; ;; \
+		amazonlinux-2023-x86_64) yumrelease=amazon/2023; yumarch=x86_64; ;; \
+		*-amz2023-x86_64) yumrelease=amazon/2023; yumarch=x86_64; ;; \
 		*-8-x86_64) yumrelease=el/8; yumarch=x86_64; ;; \
 		*-9-x86_64) yumrelease=el/9; yumarch=x86_64; ;; \
 		*-38-x86_64) yumrelease=fedora/38; yumarch=x86_64; ;; \
 		*-f38-x86_64) yumrelease=fedora/38; yumarch=x86_64; ;; \
-		*-amz2023-x86_64) yumrelease=amazon/2023; yumarch=x86_64; ;; \
-		*-2023-x86_64) yumrelease=amazon/2023; yumarch=x86_64; ;; \
+		*-rawhide-x86_64) yumrelease=fedora/rawhide; yumarch=x86_64; ;; \
 		*) echo "Unrecognized release for $$repo, exiting" >&2; exit 1; ;; \
 	    esac; \
 	    rpmdir=$(REPOBASEDIR)/$$yumrelease/$$yumarch; \
 	    srpmdir=$(REPOBASEDIR)/$$yumrelease/SRPMS; \
-	    echo "	Pusning SRPMS to $$srpmdir"; \
-	    rsync $(RSYNCSAFEOPTS) $$repo/*.src.rpm $$srpmdir/. || exit 1; \
-	    createrepo_c -q $$srpmdir/.; \
-	    echo "	Pushing RPMS to $$rpmdir"; \
-	    rsync $(RSYNCSAFEOPTS) --exclude=*.src.rpm --exclude=*debuginfo*.rpm $$repo/*.rpm $$rpmdir/. || exit 1; \
-	    createrepo_c -q $$rpmdir/.; \
+	    echo "Pushing SRPMS to $$srpmdir"; \
+	    rsync -av $$repo/*.src.rpm --no-owner --no-group $$repo/*.src.rpm $$srpmdir/. || exit 1; \
+	    createrepo -q $$srpmdir/.; \
+	    echo "Pushing RPMS to $$rpmdir"; \
+	    rsync -av $$repo/*.rpm --exclude=*.src.rpm --exclude=*debuginfo*.rpm --no-owner --no-group $$repo/*.rpm $$rpmdir/. || exit 1; \
+	    createrepo -q $$rpmdir/.; \
 	done
 	@for repo in $(MOCKCFGS); do \
 	    echo "Touching $(PWD)/../$$repo.cfg"; \
@@ -90,11 +81,8 @@ install:: $(MOCKS)
 	done
 
 clean::
-	rm -rf $(MOCKS)
-	rm -rf rpmbuild
 	rm -rf */
-	rm -f *.rpm
-	rm -f *~
 	rm -f *.out
+	rm -f *.rpm
 
 realclean distclean:: clean
