@@ -1,17 +1,16 @@
-# mock group id allocate for Fedora
-%global mockgid 135
-
-# Because tags include dangling -1, for no valid reasion
-%global versionsuffix -1
-
 Name:       mock-core-configs
-Version:    38.4
+Version:    39
 Release:    0.1%{?dist}
 Summary:    Mock core config files basic chroots
 
-License:    GPLv2+
+License:    GPL-2.0-or-later
 URL:        https://github.com/rpm-software-management/mock/
-Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}%{?versionsuffix}.zip
+# Source is created by
+# git clone https://github.com/rpm-software-management/mock.git
+# cd mock/mock-core-configs
+# git reset --hard %%{name}-%%{version}
+# tito build --tgz
+Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
 BuildArch:  noarch
 
 # The mock.rpm requires this.  Other packages may provide this if they tend to
@@ -19,66 +18,31 @@ BuildArch:  noarch
 Provides: mock-configs
 
 # distribution-gpg-keys contains GPG keys used by mock configs
-Requires:   distribution-gpg-keys >= 1.48
+Requires:   distribution-gpg-keys >= 1.85
 # specify minimal compatible version of mock
 Requires:   mock >= 2.5
 Requires:   mock-filesystem
 
 Requires(post): coreutils
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} > 7
 # to detect correct default.cfg
-Requires(post): python%{python3_pkgversion}-dnf
-Requires(post): python%{python3_pkgversion}-hawkey
+Requires(post): python3-dnf
+Requires(post): python3-hawkey
 Requires(post): system-release
-Requires(post): python%{python3_pkgversion}
+Requires(post): python3
 Requires(post): sed
-%endif
-Requires(pre):  shadow-utils
-%if 0%{?rhel} && 0%{?rhel} <= 7
-# to detect correct default.cfg
-Requires(post): python
-Requires(post): yum
-Requires(post): /etc/os-release
-%endif
 
 %description
-Config files which allow you to create chroots for:
- * Fedora
- * Epel
- * Mageia
- * Custom chroot
- * OpenSuse Tumbleweed and Leap
+Mock configuration files which allow you to create chroots for Alma Linux,
+Amazon Linux, CentOS, CentOS Stream, EuroLinux, Fedora, Fedora EPEL, Mageia,
+Navy Linux, OpenMandriva Lx, openSUSE, Oracle Linux, Red Hat Enterprise Linux,
+Rocky Linux and various other specific or combined chroots.
+
 
 %prep
-# Funky reponame due to funky mock layout
-%setup -q -n mock-%{name}-%{version}%{?versionsuffix}
-mv mock-core-configs/* .
-rmdir mock-core-configs
+%setup -q
+
 
 %build
-HOST=none
-%if 0%{?fedora}
-HOST="fedora-%{fedora}"
-%endif
-%if 0%{?rhel}
-HOST="rhel-%{rhel}"
-%endif
-
-# host overrides
-case $HOST in
-  rhel-7)
-    # RPM on EL7 doesn't link against libzstd, and newer Fedora is compressed
-    # using ZSTD.  We need to enable bootstrap image here to be able to
-    # initialize the Fedora bootstrap chroot.
-    for config in etc/mock/fedora-*-*.cfg; do
-        version=$(echo "$config" | cut -d- -f2)
-        if test $version = rawhide || test $version -ge 31; then
-            echo "config_opts['use_bootstrap_image'] = True" >> "$config"
-        fi
-    done
-    ;;
-esac
-
 
 %install
 mkdir -p %{buildroot}%{_sysusersdir}
@@ -93,7 +57,10 @@ cp -a etc/mock/eol/templates/*.tpl %{buildroot}%{_sysconfdir}/mock/eol/templates
 # generate files section with config - there is many of them
 echo "%defattr(0644, root, mock)" > %{name}.cfgs
 find %{buildroot}%{_sysconfdir}/mock -name "*.cfg" -o -name '*.tpl' \
+    | grep -v chroot-aliases \
     | sed -e "s|^%{buildroot}|%%config(noreplace) |" >> %{name}.cfgs
+echo "%%config %{_sysconfdir}/mock/chroot-aliases.cfg" >> %{name}.cfgs
+
 # just for %%ghosting purposes
 ln -s fedora-rawhide-x86_64.cfg %{buildroot}%{_sysconfdir}/mock/default.cfg
 # bash-completion
@@ -109,11 +76,6 @@ mock_docs=%{_pkgdocdir}
 mock_docs=${mock_docs//mock-core-configs/mock}
 mock_docs=${mock_docs//-%version/-*}
 sed -i "s~@MOCK_DOCS@~$mock_docs~" %{buildroot}%{_sysconfdir}/mock/site-defaults.cfg
-
-%pre
-# check for existence of mock group, create it if not found
-getent group mock > /dev/null || groupadd -f -g %mockgid -r mock
-exit 0
 
 %post
 if [ -s /etc/os-release ]; then
@@ -132,16 +94,35 @@ else
     # something obsure, use buildtime version
     ver=%{?rhel}%{?fedora}%{?mageia}
 fi
-%if 0%{?fedora} || 0%{?mageia} || 0%{?rhel} > 7
 if [ -s /etc/mageia-release ]; then
     mock_arch=$(sed -n '/^$/!{$ s/.* \(\w*\)$/\1/p}' /etc/mageia-release)
 else
-    mock_arch=$(%{__python3} -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
+    mock_arch=$(python3 -c "import dnf.rpm; import hawkey; print(dnf.rpm.basearch(hawkey.detect_arch()))")
 fi
-%else
-mock_arch=$(python -c "import rpmUtils.arch; baseArch = rpmUtils.arch.getBaseArch(); print baseArch")
+
+cfg=unknown-distro
+%if 0%{?fedora}
+cfg=fedora-$ver-$mock_arch.cfg
 %endif
-cfg=%{?fedora:fedora}%{?rhel:epel}%{?mageia:mageia}-$ver-${mock_arch}.cfg
+%if 0%{?rhel}
+# Being installed on RHEL, or a RHEL fork.  Detect it.
+distro_id=$(. /etc/os-release; echo $ID)
+case $distro_id in
+centos)
+  # This package is EL8+, and there's only CentOS Stream now.
+  distro_id=centos-stream
+  ;;
+almalinux)
+  # AlmaLinux configs look like 'alma+epel'
+  distro_id=alma
+  ;;
+esac
+cfg=$distro_id+epel-$ver-$mock_arch.cfg
+%endif
+%if 0%{?mageia}
+cfg=mageia-$ver-$mock_arch.cfg
+%endif
+
 if [ -e %{_sysconfdir}/mock/$cfg ]; then
     if [ "$(readlink %{_sysconfdir}/mock/default.cfg)" != "$cfg" ]; then
         ln -s $cfg %{_sysconfdir}/mock/default.cfg 2>/dev/null || ln -s -f $cfg %{_sysconfdir}/mock/default.cfg.rpmnew
@@ -152,36 +133,170 @@ else
 fi
 :
 
-
 %files -f %{name}.cfgs
 %license COPYING
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
-* Fri Jan 5 2023 Nico Kadel-Garcia <nkadel@gmail.com> 37.9-1
-- Update to 37.9-1
+* Sat Apr 15 2023 Pavel Raiskup <praiskup@redhat.com> 38.4-1
+- Add Amazon Linux 2023 mock configs (trawets@amazon.com)
 
-* Thu Dec 29 2022 Nico Kadel-Garcia <nkadel@gmail.com> 37.8-1
-- Provide working URL for Source
-- Use %%{name} subdirectory in upstream, mock and mock-core-configs
-  merged git repo
-- Use python macros consistently
+* Thu Mar 16 2023 Pavel Raiskup <praiskup@redhat.com> 38.3-1
+- new URL for CenOS Stream 8 koji (msuchy@redhat.com)
+- Make --enablerepo=local work with centos-stream chroots (miro@hroncok.cz)
 
-* Wed Jun 1 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 37.4-0
-- Update to 37.4
+* Fri Feb 17 2023 Pavel Raiskup <praiskup@redhat.com> 38.2-1
+- update gpg keys for Tumbleweed (msuchy@redhat.com)
 
-* Sat Apr 16 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 37.3-0
-- Update to 37.3
+* Tue Jan 31 2023 Pavel Raiskup <praiskup@redhat.com> 38.1-1
+- update openEuler gpg key (pkwarcraft@gmail.com)
+- Branch Fedora 38 (miro@hroncok.cz)
+- disable fastestmirror on almalinux (jonathan@almalinux.org)
+- openEuler 22.03-SP1 released, use the latest repo url (pkwarcraft@gmail.com)
 
-* Sun Mar 6 2022 Nico Kadel-Garcia <nkadel@gmail.com> - 37.2-0
-- Update to 37.2
+* Thu Jan 05 2023 Pavel Raiskup <praiskup@redhat.com> 37.9-1
+- missmatching gpg key and rpms in openEuler 20.03 LTS (pkwarcraft@gmail.com)
+- drop unneccessary module docs from configuration files (nkadel@gmail.com)
 
-* Wed Nov  3 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 36.3-0
-- Update to 36.3
-- Use raw .zip file from github rather than repackaging
+* Tue Sep 27 2022 Pavel Raiskup <praiskup@redhat.com> 37.8-1
+- openEuler 22.03 configs added (yikunkero@gmail.com)
+- openEuler 20.03 configs added (yikunkero@gmail.com)
+- Oracle Linux 9 configs added (a.samets@gmail.com)
+- change license to spdx (msuchy@redhat.com)
+- Update to AlmaLinux Quay.io repo (srbala@gmail.com)
+- EPEL Koji repo not exposed when we are on EPEL Next (miro@hroncok.cz)
 
-* Wed Jun 9 2021 Nico Kadel-Garcia <nkadel@gmail.com> - 34.4-0
-- Update to 34.4-0
+* Wed Aug 10 2022 Pavel Raiskup <praiskup@redhat.com> 37.7-1
+- depend on distribution-gpg-keys 1.76 (F38 key)
+
+* Wed Aug 10 2022 Pavel Raiskup <praiskup@redhat.com> 37.6-1
+- Branch Fedora 37 configs (miro@hroncok.cz)
+- Add anolis-release for Anolis OS 7 and Anolis OS 8 templates (wb-
+  zh951434@alibaba-inc.com)
+
+* Fri Jul 22 2022 Pavel Raiskup <praiskup@redhat.com> 37.5-1
+- configs: add ELN local Koji repo
+- config: sync epel-8 and epel-9 templates
+- Add Rocky Linux 9 Configuration and Mod RL8 (label@rockylinux.org)
+- Update Fedora ELN repo template (sgallagh@redhat.com)
+- EuroLinux 9 chroot configs added (git@istiak.com)
+- Fedora 34 is EOL
+- circlelinux+epel-8 as epel-8 alternative
+- Fix dist value for openSUSE Leap 15.4 (ngompa@opensuse.org)
+- Add CircleLinux 8 configs (bella@cclinux.org)
+- Add openSUSE Leap 15.4 configs (ngompa@opensuse.org)
+- Move openSUSE Leap 15.2 to EOL directory (ngompa@opensuse.org)
+- Use MirrorCache for openSUSE repositories instead of MirrorBrain (ngompa@opensuse.org)
+- Add Anolis OS 7 and Anolis OS 8 templates and configs (wb-zh951434@alibaba-inc.com)
+
+* Thu May 19 2022 Pavel Raiskup <praiskup@redhat.com> 37.4-1
+- Add AlmaLinux 9 and AlmaLinux 9 + EPEL configs (neal@gompa.dev)
+- Update the AlmaLinux 8 GPG key path (neal@gompa.dev)
+- Fix description typo on AlmaLinux 8 for x86_64 (neal@gompa.dev)
+- Add RHEL9 templates and configs (carl@george.computer)
+
+* Wed Apr 06 2022 Pavel Raiskup <praiskup@redhat.com> 37.3-1
+- updated %%description field
+- provide 'epel-9' symlinks for 'fedpkg mockbuild'
+- allow n-2 gpg key for Fedora ELN (msuchy@redhat.com)
+- added config "description" fields for --list-chroots (msuchy@redhat.com)
+
+* Thu Mar 03 2022 Pavel Raiskup <praiskup@redhat.com> 37.2-1
+- Update CentOS Stream 9 Extras repo to use correct key (ngompa@centosproject.org)
+- Add AlmaLinux+EPEL 8 for POWER (ppc64le) (ngompa13@gmail.com)
+- Add AlmaLinux 8 for POWER (ppc64le) (ngompa13@gmail.com)
+- Delete Fedora 37/Rawhide armhfp configs (miro@hroncok.cz)
+
+* Fri Feb 04 2022 Pavel Raiskup <praiskup@redhat.com> 37.1-1
+- drop EL7 related %%build hack
+- link default.cfg file to the right EL N config file
+- Add centos-stream+epel-8 configs
+
+* Wed Feb 02 2022 Pavel Raiskup <praiskup@redhat.com> 37-1
+- move CentOS/EPEL 8 configs to eol/
+- Fedora 36 branching, Rawhide == Fedora 37 now
+- depend on distribution-gpg-keys 1.64
+- drop failovermethod=priority from EL8 configs
+- Add Extras repo for CentOS Stream 9 (ngompa13@gmail.com)
+- remove el7 specific parts from the spec file (msuchy@redhat.com)
+
+* Thu Dec 16 2021 Pavel Raiskup <praiskup@redhat.com> 36.4-1
+- add CentOS Stream 9 + EPEL Next 9 (ngompa13@gmail.com)
+- add compatibility symlinks for EPEL 7 to centos+epel-7-* (ngompa13@gmail.com)
+- EPEL 7 for AArch64 and PPC64 are EOL (ngompa13@gmail.com)
+- resolve the multiple "local" repo collision (from multiple templates)
+- configure the alternative help for missing 'epel-8-*' configs
+- Fedora 33 is EOL
+- rhelepel moved to rhel+epel
+- EOL the EPEL Playground configs (ngompa13@gmail.com)
+- Add rocky+epel confs + Disable devel-debug (tucklesepk@gmail.com)
+- Rename epel to centos+epel (ngompa13@gmail.com)
+- fix the root name and remove Next from the EPEL 9 configs (ngompa13@gmail.com)
+- rename 'epel-next' to 'centos-stream+epel-next' (ngompa13@gmail.com)
+- add epel9 repos to epel9 template (carl@george.computer)
+- rhbz#2026571 - expand dnf_vars (msuchy@redhat.com)
+- oraclelinux+epel configs (carl@george.computer)
+- Add AlmaLinux+EPEL configs (ngompa13@gmail.com)
+- add navy-8-x86_64 (adil@linux.com)
+- use quay.io Almalinux image (gotmax@e.email)
+- use fully qualified bootstrap_image name (gotmax@e.email)
+- update almalinux-8.tpl bootstrap_image (gotmax@e.email)
+- add Koji local repos to CentOS Stream configs (ngompa13@gmail.com)
+- reduce packages installed in epel chroots (carl@george.computer)
+
+* Fri Oct 29 2021 Pavel Raiskup <praiskup@redhat.com> 36.3-1
+- add EuroLinux 8 aarch64 (alex@euro-linux.com)
+- add HA and RS configs to EuroLinux configs (alex@euro-linux.com)
+- Add epel9-next configs (carl@george.computer)
+
+* Tue Oct 26 2021 Pavel Raiskup <praiskup@redhat.com> 36.2-1
+- bump eln to F36 (praiskup@redhat.com)
+
+* Fri Oct 08 2021 Pavel Raiskup <praiskup@redhat.com> 36.1-1
+- Finalize CentOS Stream 9 configuration (ngompa13@gmail.com)
+- Update Oraclelinux 7/8 configs and add Oraclelinux EPEL 7/8 configs (darren.archibald@oracle.com)
+
+* Thu Sep 16 2021 Miroslav Suchý <msuchy@redhat.com> 36-1
+- config: Align CentOS Stream 9 with the production configuration
+  (ngompa13@gmail.com)
+- config: Disable installing weak dependencies on RHEL rebuilds
+  (ngompa13@gmail.com)
+- config: Disable installing weak dependencies on CentOS Stream
+  (ngompa13@gmail.com)
+- config: Validate GPG signatures for CentOS Stream 9 (ngompa13@gmail.com)
+- Add eurolinux-8 x86_64 and i686 buildroots (alex@euro-linux.com)
+
+* Mon Aug 16 2021 Pavel Raiskup <praiskup@redhat.com> 35-1
+- config: add Fedora 35 configs
+
+* Mon Jul 19 2021 Pavel Raiskup <praiskup@redhat.com> 34.6-1
+- Disable Rocky Linux "Devel" repo by default (ngompa13@gmail.com)
+- Fix URL for Rocky Linux repos in commented out "baseurl" lines
+  (ngompa13@gmail.com)
+
+* Mon Jul 19 2021 Pavel Raiskup <praiskup@redhat.com> 34.5-1
+- Add CentOS Stream 9 "preview" files
+- Add rocky support to mock (tucklesepk@gmail.com)
+- Add AlmaLinux 8 AArch64 target (ngompa13@gmail.com)
+- Add AlmaLinux Devel repo as an optional repo for AlmaLinux 8 (ngompa13@gmail.com)
+- Fix GPG key path for SLE updates in openSUSE Leap 15.3 (ngompa13@gmail.com)
+- Move Requires of shadow-utils from mock-core-configs to mock-filesystem (msuchy@redhat.com)
+- Switch CentOS templates to use quay.io images for bootstrap (carl@george.computer)
+- Add epel-next-8 configs (carl@george.computer)
+
+* Tue Jun 08 2021 Pavel Raiskup <praiskup@redhat.com> 34.4-1
+- Add GPG keys and RPM repositories for openSUSE Leap 15.3 (ngompa13@gmail.com)
+- EOL Fedora 32 (msuchy@redhat.com)
+- sync centos-stream-8 with centos-stream-repos (msuchy@redhat.com)
+
+* Tue Apr 27 2021 Pavel Raiskup <praiskup@redhat.com> 34.3-1
+- Add Oracle Linux 8 (ngompa13@gmail.com)
+- Add Oracle Linux 7 (ngompa13@gmail.com)
+- Add openSUSE Leap 15.3 (ngompa13@gmail.com)
+- openSUSE Leap 15.1 is EOL (ngompa13@gmail.com)
+- Add openSUSE Tumbleweed s390x config (ngompa13@gmail.com)
+- Add AlmaLinux 8 configs (ngompa13@gmail.com)
+- Remove make from default ELN buildroot (miro@hroncok.cz)
 
 * Mon Feb 22 2021 Pavel Raiskup <praiskup@redhat.com> 34.2-1
 - configs: use Fedora N-1 gpg keys for ELN (praiskup@redhat.com)
