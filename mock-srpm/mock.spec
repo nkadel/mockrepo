@@ -9,8 +9,8 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 3.5
-Release: 1%{?dist}
+Version: 5.0
+Release: 0.1%{?dist}
 License: GPL-2.0-or-later
 Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}%{?versionsuffix}.zip
 URL: https://github.com/rpm-software-management/mock/
@@ -33,7 +33,7 @@ Requires: mock-configs
 Requires: %{name}-filesystem
 %if 0%{?fedora} || 0%{?rhel} >= 8
 # This is still preferred package providing 'mock-configs'
-Suggests: mock-core-configs
+Requires: mock-core-configs
 %endif
 
 Requires: systemd
@@ -42,10 +42,10 @@ Requires: systemd-container
 %endif
 Requires: coreutils
 %if 0%{?fedora}
-Suggests: iproute
+Requires: iproute
 %endif
 %if 0%{?mageia}
-Suggests: iproute2
+Requires: iproute2
 %endif
 BuildRequires: bash-completion
 BuildRequires: python%{python3_pkgversion}
@@ -60,13 +60,13 @@ Requires: python%{python3_pkgversion}-rpm
 Requires: python%{python3_pkgversion}-pyroute2
 Requires: python%{python3_pkgversion}-templated-dictionary
 Requires: dnf
-Suggests: yum
+Requires: yum
 Requires: dnf-plugins-core
 Recommends: btrfs-progs
 Recommends: dnf-utils
-Suggests: qemu-user-static
-Suggests: procenv
-Suggests: podman
+Requires: qemu-user-static
+Requires: procenv
+Requires: podman
 
 %if %{with tests}
 BuildRequires: python%{python3_pkgversion}-distro
@@ -261,6 +261,9 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
+* Thu Jan 5 2023 Nico Kadel-Garcia <nkadel@gmail.com> 3.5-0.1
+- Update to 3.5
+
 * Fri Dec 30 2022 Nico Kadel-Garcia
 - Use valid Source URL from github.com
 - Enter %%{name} supdirectory for compilation
