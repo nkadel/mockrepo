@@ -1,0 +1,62 @@
+From f02e9004303df5ab3d9b868f6f60af44663cce69 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Tue, 19 Apr 2022 09:44:07 +0200
+Subject: libblkid: check fsync() return code
+
+Since 39f5af25982d8b0244000e92a9d0e0e6557d0e17 libblkid uses
+O_NONBLOCK. Now it's more obvious that check fsync() (and close())
+return value after write() is always a good idea ...
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2074486
+Upstream: http://github.com/util-linux/util-linux/commit/133a0d70f637b4f4e4337811e452153b04f2bdcf
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ libblkid/src/probe.c | 5 ++++-
+ misc-utils/wipefs.c  | 8 ++++++--
+ 2 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/libblkid/src/probe.c b/libblkid/src/probe.c
+index 5f01bc3b3..d317dc19a 100644
+--- a/libblkid/src/probe.c
++++ b/libblkid/src/probe.c
+@@ -1298,7 +1298,10 @@ int blkid_do_wipe(blkid_probe pr, int dryrun)
+ 		/* wipen on device */
+ 		if (write_all(fd, buf, len))
+ 			return -1;
+-		fsync(fd);
++
++		if (fsync(fd) != 0)
++			return -1;
++
+ 		pr->flags &= ~BLKID_FL_MODIF_BUFF;	/* be paranoid */
+ 
+ 		return blkid_probe_step_back(pr);
+diff --git a/misc-utils/wipefs.c b/misc-utils/wipefs.c
+index 78dc63ee7..f08a9ba4f 100644
+--- a/misc-utils/wipefs.c
++++ b/misc-utils/wipefs.c
+@@ -615,7 +615,9 @@ static int do_wipe(struct wipe_control *ctl)
+ 	if (need_force)
+ 		warnx(_("Use the --force option to force erase."));
+ 
+-	fsync(blkid_probe_get_fd(pr));
++	if (fsync(blkid_probe_get_fd(pr)) != 0)
++		err(EXIT_FAILURE, _("%s: cannot flush modified buffers"),
++				ctl->devname);
+ 
+ #ifdef BLKRRPART
+ 	if (reread && (mode & O_EXCL)) {
+@@ -635,7 +637,9 @@ static int do_wipe(struct wipe_control *ctl)
+ 	}
+ #endif
+ 
+-	close(blkid_probe_get_fd(pr));
++	if (close(blkid_probe_get_fd(pr)) != 0)
++		err(EXIT_FAILURE, _("%s: close device failed"), ctl->devname);
++
+ 	blkid_free_probe(pr);
+ 	free(backup);
+ 	return 0;
+-- 
+2.36.1
+

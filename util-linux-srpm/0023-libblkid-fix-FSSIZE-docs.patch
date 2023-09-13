@@ -1,0 +1,28 @@
+From 8ae64e23bc34fd939586705f64a93676bae8c2b2 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Tue, 26 Apr 2022 10:32:05 +0200
+Subject: libblkid: fix FSSIZE docs
+
+Upstream: http://github.com/util-linux/util-linux/commit/9c01f798f
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2064810
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ libblkid/src/superblocks/superblocks.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libblkid/src/superblocks/superblocks.c b/libblkid/src/superblocks/superblocks.c
+index 9adc2cfa3..adf4ee025 100644
+--- a/libblkid/src/superblocks/superblocks.c
++++ b/libblkid/src/superblocks/superblocks.c
+@@ -66,7 +66,7 @@
+  *
+  * @SBMAGIC_OFFSET: offset of SBMAGIC
+  *
+- * @FSSIZE: size of filesystem [not-implemented yet]
++ * @FSSIZE: size of filesystem (implemented for XFS only)
+  *
+  * @SYSTEM_ID: ISO9660 system identifier
+  *
+-- 
+2.36.1
+

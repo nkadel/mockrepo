@@ -1,0 +1,30 @@
+From 38b2b2e49e72638639c997e532a846ee935ce148 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 23 Aug 2021 15:15:38 +0200
+Subject: tests: make ./run.sh more robust
+
+Let's make upstream tests more stable to be usable in RHEL
+environment where we do not use ASAN and meson.
+
+Upstream: http://github.com/karelzak/util-linux/commit/331c5e0c54d9cb6f67dc3e825eec2d78c67d8ce6
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ tests/run.sh | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/tests/run.sh b/tests/run.sh
+index 9d26406c4..d020bfe88 100755
+--- a/tests/run.sh
++++ b/tests/run.sh
+@@ -165,7 +165,7 @@ OPTS="$OPTS --srcdir=$top_srcdir --builddir=$top_builddir"
+ if [ -z "$has_asan_opt" ]; then
+         if [ -e "$top_builddir/Makefile" ]; then
+ 	    asan=$(awk '/^ASAN_LDFLAGS/ { print $3 }' $top_builddir/Makefile)
+-        else
++        elif [ -f "$top_builddir/meson.conf" ]; then
+             . "$top_builddir/meson.conf"
+         fi
+ 	if [ -n "$asan" ]; then
+-- 
+2.34.1
+

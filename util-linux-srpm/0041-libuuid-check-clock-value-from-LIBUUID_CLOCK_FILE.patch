@@ -1,0 +1,35 @@
+From cede4c481ba0f8fa4256341a0acca33f826fca4f Mon Sep 17 00:00:00 2001
+From: Michael Trapp <michael.trapp@sap.com>
+Date: Tue, 2 Aug 2022 14:16:43 +0200
+Subject: libuuid: check clock value from LIBUUID_CLOCK_FILE
+
+The clock value from the LIBUUID_CLOCK_FILE must be checked in
+case of an update of libuuid. If clock==CLOCK_SEQ_CONT it must
+be set to a new value.
+
+Upstream: http://github.com/util-linux/util-linux/commit/5d1424d85ac9e2a1369ee920038825c154ee5443
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2141970
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ libuuid/src/gen_uuid.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/libuuid/src/gen_uuid.c b/libuuid/src/gen_uuid.c
+index ac682a1d8..f05db467e 100644
+--- a/libuuid/src/gen_uuid.c
++++ b/libuuid/src/gen_uuid.c
+@@ -274,6 +274,11 @@ static int get_clock(uint32_t *clock_high, uint32_t *clock_low,
+ 			last.tv_usec = tv2;
+ 			adjustment = a;
+ 		}
++		// reset in case of reserved CLOCK_SEQ_CONT
++		if (clock_seq == CLOCK_SEQ_CONT) {
++			last.tv_sec = 0;
++			last.tv_usec = 0;
++		}
+ 	}
+ 
+ 	if ((last.tv_sec == 0) && (last.tv_usec == 0)) {
+-- 
+2.39.1
+

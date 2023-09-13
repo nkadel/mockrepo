@@ -1,0 +1,66 @@
+From a4d1feed2803a5c0596877b64487734bcdb781ef Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 23 Aug 2021 16:28:52 +0200
+Subject: tests: make mount/fstab-all more robust
+
+Upstream: http://github.com/karelzak/util-linux/commit/85ae61dd6d956e7c9fe2b22b8c46bb1d0bfd13da
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ tests/ts/mount/fstab-all | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/tests/ts/mount/fstab-all b/tests/ts/mount/fstab-all
+index acc64e462..6b7018823 100755
+--- a/tests/ts/mount/fstab-all
++++ b/tests/ts/mount/fstab-all
+@@ -79,6 +79,7 @@ echo  "${TS_DEVICE}4 ${MOUNTPOINT}D ext4 rw,defaults 0 0" >> $MY_FSTAB
+ ts_init_subtest "basic"
+ $TS_CMD_MOUNT --all --fstab $MY_FSTAB >> $TS_OUTPUT 2>> $TS_ERRLOG
+ [ $? == 0 ] || ts_log "mount failed"
++udevadm settle
+ $TS_CMD_UMOUNT ${MOUNTPOINT}{A,B,C,D}
+ [ $? == 0 ] || ts_log "umount failed"
+ ts_finalize_subtest
+@@ -87,6 +88,7 @@ ts_finalize_subtest
+ ts_init_subtest "filter-type"
+ $TS_CMD_MOUNT --all --fstab $MY_FSTAB -t ext4 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ [ $? == 0 ] || ts_log "mount failed"
++udevadm settle
+ $TS_CMD_UMOUNT ${MOUNTPOINT}D
+ [ $? == 0 ] || ts_log "umount failed"
+ ts_finalize_subtest
+@@ -95,6 +97,7 @@ ts_finalize_subtest
+ ts_init_subtest "filter-notype"
+ $TS_CMD_MOUNT --all --fstab $MY_FSTAB -t noext4 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ [ $? == 0 ] || ts_log "mount failed"
++udevadm settle
+ $TS_CMD_UMOUNT ${MOUNTPOINT}{A,B,C}
+ [ $? == 0 ] || ts_log "umount failed"
+ ts_finalize_subtest
+@@ -103,6 +106,7 @@ ts_finalize_subtest
+ ts_init_subtest "filter-option"
+ $TS_CMD_MOUNT --all --fstab $MY_FSTAB -O ro >> $TS_OUTPUT 2>> $TS_ERRLOG
+ [ $? == 0 ] || ts_log "mount failed"
++udevadm settle
+ $TS_CMD_UMOUNT ${MOUNTPOINT}C
+ [ $? == 0 ] || ts_log "umount failed"
+ ts_finalize_subtest
+@@ -111,6 +115,7 @@ ts_finalize_subtest
+ ts_init_subtest "override-option"
+ $TS_CMD_MOUNT --all --fstab $MY_FSTAB -o ro >> $TS_OUTPUT 2>> $TS_ERRLOG
+ [ $? == 0 ] || ts_log "mount failed"
++udevadm settle
+ $TS_CMD_UMOUNT ${MOUNTPOINT}{A,B,C,D}
+ [ $? == 0 ] || ts_log "umount failed"
+ ts_finalize_subtest
+@@ -132,6 +137,7 @@ $TS_CMD_MOUNT	--all \
+ 		--target-prefix $MY_ROOT \
+ 		-o X-mount.mkdir >> $TS_OUTPUT 2>> $TS_ERRLOG
+ [ $? == 0 ] || ts_log "mount failed"
++udevadm settle
+ $TS_CMD_UMOUNT $MY_ROOT/foo/{A,B,C,D}
+ [ $? == 0 ] || ts_log "umount failed"
+ ts_finalize_subtest
+-- 
+2.34.1
+

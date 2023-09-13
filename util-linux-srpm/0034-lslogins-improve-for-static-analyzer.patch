@@ -1,0 +1,27 @@
+From 53af90a8edf2e60342b477d28e0d802dc26f18b7 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Tue, 9 Aug 2022 12:35:05 +0200
+Subject: lslogins: improve for static analyzer
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2094216
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ login-utils/lslogins.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/login-utils/lslogins.c b/login-utils/lslogins.c
+index ff4386d1b..56431212d 100644
+--- a/login-utils/lslogins.c
++++ b/login-utils/lslogins.c
+@@ -852,7 +852,7 @@ static struct lslogins_user *get_user_info(struct lslogins_control *ctl, const c
+ 				while (p && *p == '!')
+ 					p++, i++;
+ 
+-				if (i != 0 && (!*p || valid_pwd(p)))
++				if (i != 0 && p && (!*p || valid_pwd(p)))
+ 					user->pwd_lock = STATUS_TRUE;
+ 			} else
+ 				user->pwd_lock = STATUS_UNKNOWN;
+-- 
+2.37.1
+

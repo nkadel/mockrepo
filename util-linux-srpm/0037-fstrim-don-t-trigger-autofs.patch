@@ -1,0 +1,93 @@
+From 07ed253a49cbe80c15d43ed3800206f99d15b43e Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 4 Oct 2021 11:14:01 +0200
+Subject: fstrim: don't trigger autofs
+
+- ignore read-only entries
+- ignore autofs entries (for example from /proc/self/mountinfo)
+- ignore autofs mountpoints where automounter has not been triggered yet
+
+Fixes: https://github.com/karelzak/util-linux/issues/1463
+Signed-off-by: Karel Zak <kzak@redhat.com>
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2165981
+---
+ sys-utils/fstrim.8.adoc |  2 +-
+ sys-utils/fstrim.c      | 28 +++++++++++++++++++++++++++-
+ 2 files changed, 28 insertions(+), 2 deletions(-)
+
+diff --git a/sys-utils/fstrim.8.adoc b/sys-utils/fstrim.8.adoc
+index 66671c293..d2f3b05be 100644
+--- a/sys-utils/fstrim.8.adoc
++++ b/sys-utils/fstrim.8.adoc
+@@ -29,7 +29,7 @@ Running *fstrim* frequently, or even using *mount -o discard*, might negatively
+ The _offset_, _length_, and _minimum-size_ arguments may be followed by the multiplicative suffixes KiB (=1024), MiB (=1024*1024), and so on for GiB, TiB, PiB, EiB, ZiB and YiB (the "iB" is optional, e.g., "K" has the same meaning as "KiB") or the suffixes KB (=1000), MB (=1000*1000), and so on for GB, TB, PB, EB, ZB and YB.
+ 
+ *-A, --fstab*::
+-Trim all mounted filesystems mentioned in _/etc/fstab_ on devices that support the discard operation. The root filesystem is determined from kernel command line if missing in the file. The other supplied options, like *--offset*, *--length* and *--minimum*, are applied to all these devices. Errors from filesystems that do not support the discard operation, read-only devices and read-only filesystems are silently ignored.
++Trim all mounted filesystems mentioned in _/etc/fstab_ on devices that support the discard operation. The root filesystem is determined from kernel command line if missing in the file. The other supplied options, like *--offset*, *--length* and *--minimum*, are applied to all these devices. Errors from filesystems that do not support the discard operation, read-only devices, autofs and read-only filesystems are silently ignored.
+ 
+ *-a, --all*::
+ Trim all mounted filesystems on devices that support the discard operation. The other supplied options, like *--offset*, *--length* and *--minimum*, are applied to all these devices. Errors from filesystems that do not support the discard operation, read-only devices and read-only filesystems are silently ignored.
+diff --git a/sys-utils/fstrim.c b/sys-utils/fstrim.c
+index d2aec4f71..ea787f42c 100644
+--- a/sys-utils/fstrim.c
++++ b/sys-utils/fstrim.c
+@@ -35,6 +35,7 @@
+ 
+ #include <sys/ioctl.h>
+ #include <sys/stat.h>
++#include <sys/vfs.h>
+ #include <linux/fs.h>
+ 
+ #include "nls.h"
+@@ -45,6 +46,7 @@
+ #include "pathnames.h"
+ #include "sysfs.h"
+ #include "optutils.h"
++#include "statfs_magic.h"
+ 
+ #include <libmount.h>
+ 
+@@ -207,6 +209,30 @@ fail:
+ 	return 1;
+ }
+ 
++static int is_unwanted_fs(struct libmnt_fs *fs, const char *tgt)
++{
++	struct statfs vfs;
++	int fd, rc;
++
++	if (mnt_fs_is_pseudofs(fs))
++		return 1;
++	if (mnt_fs_is_netfs(fs))
++		return 1;
++	if (mnt_fs_is_swaparea(fs))
++		return 1;
++	if (mnt_fs_match_fstype(fs, "autofs"))
++		return 1;
++	if (mnt_fs_match_options(fs, "ro"))
++		return 1;
++
++	fd = open(tgt, O_PATH);
++	if (!fd)
++		return 1;
++	rc = fstatfs(fd, &vfs) != 0 || vfs.f_type == STATFS_AUTOFS_MAGIC;
++	close(fd);
++
++	return rc;
++}
+ 
+ static int uniq_fs_target_cmp(
+ 		struct libmnt_table *tb __attribute__((__unused__)),
+@@ -292,7 +318,7 @@ static int fstrim_all_from_file(struct fstrim_control *ctl, const char *filename
+ 		const char *src = mnt_fs_get_srcpath(fs),
+ 			   *tgt = mnt_fs_get_target(fs);
+ 
+-		if (!tgt || mnt_fs_is_pseudofs(fs) || mnt_fs_is_netfs(fs)) {
++		if (!tgt || is_unwanted_fs(fs, tgt)) {
+ 			mnt_table_remove_fs(tab, fs);
+ 			continue;
+ 		}
+-- 
+2.39.1
+

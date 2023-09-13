@@ -1,0 +1,38 @@
+From 3ceddbb1238e13a51efbe23119c885568e820e69 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Thu, 2 Jun 2022 16:55:49 +0200
+Subject: uuidd: allow AF_INET in systemd service
+
+libuuid uses
+
+	socket(AF_INET, SOCK_DGRAM, IPPROTO_IP)
+
+to get MAC address for time based UUIDs, but there is
+
+	RestrictAddressFamilies=AF_UNIX
+
+in uuidd service file ...
+
+Fixes: https://github.com/util-linux/util-linux/issues/1704
+Upstream: http://github.com/util-linux/util-linux/commit/304b4dc4936b115ca33af5325c3b04d0997c1353
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2092943
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ misc-utils/uuidd.service.in | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/misc-utils/uuidd.service.in b/misc-utils/uuidd.service.in
+index e64ca59b5..64580287f 100644
+--- a/misc-utils/uuidd.service.in
++++ b/misc-utils/uuidd.service.in
+@@ -16,7 +16,6 @@ PrivateUsers=yes
+ ProtectKernelTunables=yes
+ ProtectKernelModules=yes
+ ProtectControlGroups=yes
+-RestrictAddressFamilies=AF_UNIX
+ MemoryDenyWriteExecute=yes
+ ReadWritePaths=/var/lib/libuuid/
+ SystemCallFilter=@default @file-system @basic-io @system-service @signal @io-event @network-io
+-- 
+2.36.1
+

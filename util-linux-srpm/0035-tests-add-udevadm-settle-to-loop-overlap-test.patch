@@ -1,0 +1,48 @@
+From 723438ad02928d9614439def99b36e0758f62d26 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Fri, 12 Aug 2022 08:30:49 +0200
+Subject: tests: add udevadm settle to loop overlap test
+
+Addresses: https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=2117203
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ tests/ts/libmount/loop-overlay | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/tests/ts/libmount/loop-overlay b/tests/ts/libmount/loop-overlay
+index 62874a182..c27f60d0f 100755
+--- a/tests/ts/libmount/loop-overlay
++++ b/tests/ts/libmount/loop-overlay
+@@ -43,22 +43,29 @@ dd if="$IMG" of="$IMG" oflag=append bs=1024k count=5 conv=notrunc &>/dev/null
+ 
+ echo "second should fail" >>$TS_OUTPUT
+ $TS_CMD_MOUNT -oloop "$IMG" "$TS_MOUNTPOINT-1" >> $TS_OUTPUT 2>> $TS_ERRLOG
++udevadm settle
+ $TS_CMD_MOUNT -oloop,offset=$OFFSET "$IMG" "$TS_MOUNTPOINT-2" 2>&1 \
+        | sed 's/:.*:/: <target>/; s/for .*/for <source>/' >> $TS_OUTPUT
+ $TS_CMD_UMOUNT "$TS_MOUNTPOINT-1" >> $TS_OUTPUT 2>> $TS_ERRLOG
++udevadm settle
+ 
+ echo "should succeed" >>$TS_OUTPUT
+ $TS_CMD_MOUNT -oloop,sizelimit=$OFFSET "$IMG" "$TS_MOUNTPOINT-1" >> $TS_OUTPUT 2>> $TS_ERRLOG
++udevadm settle
+ $TS_CMD_MOUNT -oloop,offset=$OFFSET "$IMG" "$TS_MOUNTPOINT-2" >> $TS_OUTPUT 2>> $TS_ERRLOG
++udevadm settle
+ $TS_CMD_UMOUNT "$TS_MOUNTPOINT-1" >> $TS_OUTPUT 2>> $TS_ERRLOG
+ $TS_CMD_UMOUNT "$TS_MOUNTPOINT-2" >> $TS_OUTPUT 2>> $TS_ERRLOG
++udevadm settle
+ 
+ echo "both should fail" >>$TS_OUTPUT
+ LOOPDEV=$($TS_CMD_LOSETUP --show -f --offset 1 --sizelimit $OFFSET "$IMG")
++udevadm settle
+ $TS_CMD_MOUNT -oloop,sizelimit=$OFFSET "$IMG" "$TS_MOUNTPOINT-1" 2>&1 \
+ 	| sed 's/:.*:/: <target>/; s/for .*/for <source>/' >> $TS_OUTPUT
+ $TS_CMD_MOUNT -oloop,offset=$OFFSET "$IMG" "$TS_MOUNTPOINT-2" 2>&1 \
+ 	| sed 's/:.*:/: <target>/; s/for .*/for <source>/' >> $TS_OUTPUT
++udevadm settle
+ $TS_CMD_LOSETUP --detach $LOOPDEV
+ 
+ ts_log "Success"
+-- 
+2.37.2
+

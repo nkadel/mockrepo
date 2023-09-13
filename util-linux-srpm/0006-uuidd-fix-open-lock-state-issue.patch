@@ -1,0 +1,70 @@
+From a80ba745cc54d5ba726e48065aebe6dac50dedd2 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 24 Jan 2022 14:08:08 +0100
+Subject: uuidd: fix open/lock state issue
+
+* warn on open/lock state issue
+
+* enable access to /var/lib/libuuid/, because ProtectSystem=strict make it read-only
+
+  openat(AT_FDCWD, "/var/lib/libuuid/clock.txt",
+     O_RDWR|O_CREAT|O_CLOEXEC, 0660) = -1 EROFS (Read-only file system)
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2040366
+Upstream: http://github.com/util-linux/util-linux/commit/f27876f9c1056bf41fd940d5c4990b4277e0024f
+Upstream: http://github.com/util-linux/util-linux/commit/417982d0236a12756923d88e627f5e4facf8951c
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ misc-utils/uuidd.c          | 9 ++++++---
+ misc-utils/uuidd.service.in | 1 +
+ 2 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/misc-utils/uuidd.c b/misc-utils/uuidd.c
+index fa8db173b..78a37d2e8 100644
+--- a/misc-utils/uuidd.c
++++ b/misc-utils/uuidd.c
+@@ -494,7 +494,8 @@ static void server_loop(const char *socket_path, const char *pidfile_path,
+ 			break;
+ 		case UUIDD_OP_TIME_UUID:
+ 			num = 1;
+-			__uuid_generate_time(uu, &num);
++			if (__uuid_generate_time(uu, &num) < 0 && !uuidd_cxt->quiet)
++				warnx(_("failed to open/lock clock counter"));
+ 			if (uuidd_cxt->debug) {
+ 				uuid_unparse(uu, str);
+ 				fprintf(stderr, _("Generated time UUID: %s\n"), str);
+@@ -504,7 +505,8 @@ static void server_loop(const char *socket_path, const char *pidfile_path,
+ 			break;
+ 		case UUIDD_OP_RANDOM_UUID:
+ 			num = 1;
+-			__uuid_generate_random(uu, &num);
++			if (__uuid_generate_time(uu, &num) < 0 && !uuidd_cxt->quiet)
++				warnx(_("failed to open/lock clock counter"));
+ 			if (uuidd_cxt->debug) {
+ 				uuid_unparse(uu, str);
+ 				fprintf(stderr, _("Generated random UUID: %s\n"), str);
+@@ -513,7 +515,8 @@ static void server_loop(const char *socket_path, const char *pidfile_path,
+ 			reply_len = sizeof(uu);
+ 			break;
+ 		case UUIDD_OP_BULK_TIME_UUID:
+-			__uuid_generate_time(uu, &num);
++			if (__uuid_generate_time(uu, &num) < 0 && !uuidd_cxt->quiet)
++				warnx(_("failed to open/lock clock counter"));
+ 			if (uuidd_cxt->debug) {
+ 				uuid_unparse(uu, str);
+ 				fprintf(stderr, P_("Generated time UUID %s "
+diff --git a/misc-utils/uuidd.service.in b/misc-utils/uuidd.service.in
+index b4c9c4635..e64ca59b5 100644
+--- a/misc-utils/uuidd.service.in
++++ b/misc-utils/uuidd.service.in
+@@ -18,6 +18,7 @@ ProtectKernelModules=yes
+ ProtectControlGroups=yes
+ RestrictAddressFamilies=AF_UNIX
+ MemoryDenyWriteExecute=yes
++ReadWritePaths=/var/lib/libuuid/
+ SystemCallFilter=@default @file-system @basic-io @system-service @signal @io-event @network-io
+ 
+ [Install]
+-- 
+2.34.1
+

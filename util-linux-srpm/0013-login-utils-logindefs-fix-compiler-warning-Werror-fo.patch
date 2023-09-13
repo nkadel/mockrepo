@@ -1,0 +1,30 @@
+From 1c4ee8348e220b633d676214fd585ee2b3945cf6 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 6 Jun 2022 16:14:14 +0200
+Subject: login-utils/logindefs: fix compiler warning
+ [-Werror=format-truncation=]
+
+Upstream: http://github.com/util-linux/util-linux/commit/977f98ee34ca002cb5301c2d3a5953c754f813ec
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2094216
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ login-utils/logindefs.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/login-utils/logindefs.c b/login-utils/logindefs.c
+index 97150dc28..95631223a 100644
+--- a/login-utils/logindefs.c
++++ b/login-utils/logindefs.c
+@@ -521,7 +521,8 @@ int get_hushlogin_status(struct passwd *pwd, int force_check)
+ 		if (strlen(pwd->pw_dir) + strlen(file) + 2 > sizeof(buf))
+ 			continue;
+ 
+-		sprintf(buf, "%s/%s", pwd->pw_dir, file);
++		if (snprintf(buf, sizeof(buf), "%s/%s", pwd->pw_dir, file) < 0)
++			continue;
+ 
+ 		if (force_check) {
+ 			uid_t ruid = getuid();
+-- 
+2.36.1
+

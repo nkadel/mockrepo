@@ -1,0 +1,28 @@
+From 097fc3427d3221d763f0b1c41923758af2f471a3 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Thu, 21 Jul 2022 10:57:36 +0200
+Subject: lslogins: remove unexpected debug message
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2094216
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ login-utils/lslogins.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/login-utils/lslogins.c b/login-utils/lslogins.c
+index 9431a50bb..c37df9096 100644
+--- a/login-utils/lslogins.c
++++ b/login-utils/lslogins.c
+@@ -562,9 +562,6 @@ static int get_sgroups(gid_t **list, size_t *len, struct passwd *pwd)
+ 
+ 	*list = xcalloc(1, ngroups * sizeof(gid_t));
+ 
+-fprintf(stderr, "KZAK>>> alloc '%p' for %s\n", *list, pwd->pw_name);
+-
+-
+ 	/* now for the actual list of GIDs */
+ 	if (-1 == getgrouplist(pwd->pw_name, pwd->pw_gid, *list, &ngroups))
+ 		return -1;
+-- 
+2.36.1
+

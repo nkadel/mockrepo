@@ -1,0 +1,73 @@
+From 3dc40e180aaf653bc76fc0097a8bb112f48af5ae Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Wed, 2 Mar 2022 11:34:06 +0100
+Subject: tests: improve cramfs tests
+
+* make GID and mode use more robust (already used in tests/ts/cramfs/mkfs)
+
+* mark cramfs fsck/mkfs tests as TS_KNOWN_FAIL, the tests are based on
+  image checksums and it produces a different binary image on s390
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2133396
+Addresses: https://github.com/util-linux/util-linux/issues/1613
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ tests/ts/cramfs/doubles         | 9 ++++++++-
+ tests/ts/cramfs/fsck-endianness | 3 +++
+ tests/ts/cramfs/mkfs-endianness | 3 +++
+ 3 files changed, 14 insertions(+), 1 deletion(-)
+
+diff --git a/tests/ts/cramfs/doubles b/tests/ts/cramfs/doubles
+index 8a1b7bb88..eb2c7fa0f 100755
+--- a/tests/ts/cramfs/doubles
++++ b/tests/ts/cramfs/doubles
+@@ -36,10 +36,17 @@ IMAGE_SRC="$TS_OUTDIR/${TS_TESTNAME}-data"
+ ts_log "create mountpoint dir"
+ [ -d "$TS_MOUNTPOINT" ] || mkdir -p $TS_MOUNTPOINT
+ 
+-mkdir -p $IMAGE_SRC
++rm -rf "$IMAGE_SRC"
++mkdir -m 755 -p $IMAGE_SRC
++
++umask 133
++
+ echo hello > $IMAGE_SRC/a
+ echo hello > $IMAGE_SRC/b
+ 
++# sudo may use whatever group
++chgrp -R 0 "$IMAGE_SRC"
++
+ ts_log "create cramfs image"
+ $TS_CMD_MKCRAMFS $IMAGE_SRC $IMAGE_PATH >> $TS_OUTPUT 2>> $TS_ERRLOG
+ [ -s "$IMAGE_PATH" ] || ts_die "Cannot create $IMAGE_PATH"
+diff --git a/tests/ts/cramfs/fsck-endianness b/tests/ts/cramfs/fsck-endianness
+index bcfb46c90..222ea3fd3 100755
+--- a/tests/ts/cramfs/fsck-endianness
++++ b/tests/ts/cramfs/fsck-endianness
+@@ -27,6 +27,9 @@ ts_check_test_command "$TS_HELPER_MD5"
+ 
+ ts_skip_nonroot
+ 
++# does not work on s390
++TS_KNOWN_FAIL="yes"
++
+ IMAGE_LITTLE="$TS_SELF/cramfs-little.img"	#Known good little endian image
+ IMAGE_BIG="$TS_SELF/cramfs-big.img"		#Known good big endian image
+ 
+diff --git a/tests/ts/cramfs/mkfs-endianness b/tests/ts/cramfs/mkfs-endianness
+index 91d476579..5f0ff714d 100755
+--- a/tests/ts/cramfs/mkfs-endianness
++++ b/tests/ts/cramfs/mkfs-endianness
+@@ -26,6 +26,9 @@ ts_check_test_command "$TS_CMD_HEXDUMP"
+ 
+ ts_skip_nonroot
+ 
++# does not work on s390
++TS_KNOWN_FAIL="yes"
++
+ IMAGE_DATA="$TS_OUTDIR/${TS_TESTNAME}-data"
+ IMAGE_CREATED="$TS_OUTDIR/${TS_TESTNAME}-cramfs.img"	#Image created during the test and compared against the known images.
+ 
+-- 
+2.40.1
+

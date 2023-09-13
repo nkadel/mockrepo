@@ -1,0 +1,33 @@
+From f0f4fe8901462ca335d89267037ffe99096bac72 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Wed, 9 Aug 2023 12:56:42 +0200
+Subject: uuidd: improve man page for -cont-clock
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2174748
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ misc-utils/uuidd.8.adoc | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/misc-utils/uuidd.8.adoc b/misc-utils/uuidd.8.adoc
+index c87125901..38ef39598 100644
+--- a/misc-utils/uuidd.8.adoc
++++ b/misc-utils/uuidd.8.adoc
+@@ -24,8 +24,12 @@ The *uuidd* daemon is used by the UUID library to generate universally unique id
+ 
+ == OPTIONS
+ 
+-*-C*, *--cont-clock* _opt_arg_::
+-Activate continuous clock handling for time based UUIDs. *uuidd* could use all possible clock values, beginning with the daemon's start time. The optional argument can be used to set a value for the max_clock_offset. This gurantees, that a clock value of a UUID will always be within the range of the max_clock_offset. '-C' or '--cont-clock' enables the feature with a default max_clock_offset of 2 hours. '-C<NUM>[hd]' or '--cont-clock=<NUM>[hd]' enables the feature with a max_clock_offset of NUM seconds. In case of an appended h or d, the NUM value is read in hours or days. The minimum value is 60 seconds, the maximum value is 365 days.
++*-C*, *--cont-clock*[=_time_]::
++Activate continuous clock handling for time based UUIDs. *uuidd* could use all possible clock values, beginning with the daemon's start time. The optional argument can be used to set a value for the max_clock_offset. This gurantees, that a clock value of a UUID will always be within the range of the max_clock_offset.
+++
++The option '-C' or '--cont-clock' enables the feature with a default max_clock_offset of 2 hours.
+++
++The option '-C<NUM>[hd]' or '--cont-clock=<NUM>[hd]' enables the feature with a max_clock_offset of NUM seconds. In case of an appended h or d, the NUM value is read in hours or days. The minimum value is 60 seconds, the maximum value is 365 days.
+ 
+ *-d*, *--debug*::
+ Run uuidd in debugging mode. This prevents uuidd from running as a daemon.
+-- 
+2.40.1
+

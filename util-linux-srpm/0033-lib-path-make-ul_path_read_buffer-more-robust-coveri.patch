@@ -1,0 +1,46 @@
+From f6fffc1a89e57b7d5dd4adf1ee6b2146e58ec411 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Thu, 17 Mar 2022 12:18:03 +0100
+Subject: lib/path: make ul_path_read_buffer() more robust [coverity scan]
+
+Make sure we never call buf[rc - 1] for rc=0.
+
+Upstream: http://github.com/util-linux/util-linux/commit/ea459dcf95d0bb04c816b71d2b85fbcd8cfc5ee4
+Addresses: https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=2109459
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ lib/path.c | 17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
+
+diff --git a/lib/path.c b/lib/path.c
+index 21f9bd1c4..ab034e110 100644
+--- a/lib/path.c
++++ b/lib/path.c
+@@ -666,14 +666,17 @@ int ul_path_readf_string(struct path_cxt *pc, char **str, const char *path, ...)
+ int ul_path_read_buffer(struct path_cxt *pc, char *buf, size_t bufsz, const char *path)
+ {
+ 	int rc = ul_path_read(pc, buf, bufsz - 1, path);
+-	if (rc < 0)
+-		return rc;
+ 
+-	/* Remove tailing newline (usual in sysfs) */
+-	if (rc > 0 && *(buf + rc - 1) == '\n')
+-		buf[--rc] = '\0';
+-	else
+-		buf[rc - 1] = '\0';
++	if (rc == 0)
++		buf[0] = '\0';
++
++	else if (rc > 0) {
++		/* Remove tailing newline (usual in sysfs) */
++		if (*(buf + rc - 1) == '\n')
++			buf[--rc] = '\0';
++		else
++			buf[rc - 1] = '\0';
++	}
+ 
+ 	return rc;
+ }
+-- 
+2.36.1
+

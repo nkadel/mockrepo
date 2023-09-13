@@ -1,0 +1,1394 @@
+From bb1537a959e8ec53acfa90081be9cd1167b6a0cd Mon Sep 17 00:00:00 2001
+From: Andrey Albershteyn <aalbersh@redhat.com>
+Date: Fri, 27 May 2022 12:05:32 +0200
+Subject: libblkid: add FSBLOCKSIZE tag
+
+The FSBLOCKSIZE tag exposes file system block size in contrast to
+the BLOCK_SIZE (unfortunate name) which returns minimal accessible
+block size (sector size).
+
+Upstream: http://github.com/util-linux/util-linux/commit/0f447d490
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2064810
+Signed-off-by: Andrey Albershteyn <aalbersh@redhat.com>
+---
+ libblkid/src/superblocks/apfs.c                     |  1 +
+ libblkid/src/superblocks/befs.c                     |  1 +
+ libblkid/src/superblocks/btrfs.c                    |  1 +
+ libblkid/src/superblocks/erofs.c                    |  5 ++++-
+ libblkid/src/superblocks/exfat.c                    |  1 +
+ libblkid/src/superblocks/exfs.c                     |  1 +
+ libblkid/src/superblocks/ext.c                      |  4 +++-
+ libblkid/src/superblocks/f2fs.c                     |  4 +++-
+ libblkid/src/superblocks/gfs.c                      |  1 +
+ libblkid/src/superblocks/hfs.c                      |  1 +
+ libblkid/src/superblocks/hpfs.c                     |  1 +
+ libblkid/src/superblocks/iso9660.c                  |  2 ++
+ libblkid/src/superblocks/jfs.c                      |  1 +
+ libblkid/src/superblocks/minix.c                    |  1 +
+ libblkid/src/superblocks/nilfs.c                    |  4 +++-
+ libblkid/src/superblocks/ntfs.c                     |  2 ++
+ libblkid/src/superblocks/ocfs.c                     |  4 +++-
+ libblkid/src/superblocks/reiserfs.c                 |  2 ++
+ libblkid/src/superblocks/romfs.c                    |  1 +
+ libblkid/src/superblocks/squashfs.c                 |  1 +
+ libblkid/src/superblocks/superblocks.c              | 13 +++++++++++++
+ libblkid/src/superblocks/superblocks.h              |  1 +
+ libblkid/src/superblocks/udf.c                      |  1 +
+ libblkid/src/superblocks/ufs.c                      |  8 ++++++--
+ libblkid/src/superblocks/vfat.c                     |  1 +
+ libblkid/src/superblocks/vxfs.c                     |  2 ++
+ libblkid/src/superblocks/xfs.c                      |  1 +
+ libblkid/src/superblocks/zfs.c                      |  4 +++-
+ libblkid/src/superblocks/zonefs.c                   |  1 +
+ tests/expected/blkid/low-probe-befs                 |  1 +
+ tests/expected/blkid/low-probe-btrfs                |  1 +
+ tests/expected/blkid/low-probe-erofs                |  1 +
+ tests/expected/blkid/low-probe-exfat                |  1 +
+ tests/expected/blkid/low-probe-ext2                 |  1 +
+ tests/expected/blkid/low-probe-ext3                 |  1 +
+ tests/expected/blkid/low-probe-f2fs                 |  1 +
+ tests/expected/blkid/low-probe-fat                  |  1 +
+ tests/expected/blkid/low-probe-fat16_noheads        |  1 +
+ tests/expected/blkid/low-probe-fat32_cp850_O_tilde  |  1 +
+ tests/expected/blkid/low-probe-fat32_label_64MB     |  1 +
+ tests/expected/blkid/low-probe-fat32_mkdosfs_label1 |  1 +
+ ...ow-probe-fat32_mkdosfs_label1_dosfslabel_NO_NAME |  1 +
+ .../low-probe-fat32_mkdosfs_label1_dosfslabel_empty |  1 +
+ ...low-probe-fat32_mkdosfs_label1_dosfslabel_label2 |  1 +
+ .../low-probe-fat32_mkdosfs_label1_mlabel_NO_NAME   |  1 +
+ .../low-probe-fat32_mkdosfs_label1_mlabel_erase     |  1 +
+ .../blkid/low-probe-fat32_mkdosfs_label1_xp_erase   |  1 +
+ .../blkid/low-probe-fat32_mkdosfs_label1_xp_label2  |  1 +
+ tests/expected/blkid/low-probe-fat32_mkdosfs_none   |  1 +
+ .../low-probe-fat32_mkdosfs_none_dosfslabel_NO_NAME |  1 +
+ .../low-probe-fat32_mkdosfs_none_dosfslabel_label1  |  1 +
+ ...e-fat32_mkdosfs_none_dosfslabel_label1_xp_label2 |  1 +
+ .../blkid/low-probe-fat32_mkdosfs_none_xp_label1    |  1 +
+ ...e-fat32_mkdosfs_none_xp_label1_dosfslabel_label2 |  1 +
+ tests/expected/blkid/low-probe-fat32_xp_label1      |  1 +
+ tests/expected/blkid/low-probe-fat32_xp_none        |  1 +
+ .../blkid/low-probe-fat32_xp_none_dosfslabel_label1 |  1 +
+ .../blkid/low-probe-fat32_xp_none_mlabel_label1     |  1 +
+ tests/expected/blkid/low-probe-gfs2                 |  1 +
+ tests/expected/blkid/low-probe-hfsplus              |  1 +
+ tests/expected/blkid/low-probe-hpfs                 |  1 +
+ tests/expected/blkid/low-probe-iso                  |  1 +
+ .../blkid/low-probe-iso-different-iso-joliet-label  |  1 +
+ tests/expected/blkid/low-probe-iso-joliet           |  1 +
+ .../blkid/low-probe-iso-multi-genisoimage-0         |  1 +
+ .../blkid/low-probe-iso-multi-genisoimage-174       |  1 +
+ .../blkid/low-probe-iso-multi-genisoimage-348       |  1 +
+ tests/expected/blkid/low-probe-iso-rr-joliet        |  1 +
+ .../expected/blkid/low-probe-iso-unicode-long-label |  1 +
+ tests/expected/blkid/low-probe-jbd                  |  1 +
+ tests/expected/blkid/low-probe-jfs                  |  1 +
+ tests/expected/blkid/low-probe-minix-BE             |  1 +
+ tests/expected/blkid/low-probe-minix-LE             |  1 +
+ tests/expected/blkid/low-probe-nilfs2               |  1 +
+ tests/expected/blkid/low-probe-ntfs                 |  1 +
+ tests/expected/blkid/low-probe-ocfs2                |  1 +
+ tests/expected/blkid/low-probe-reiser3              |  1 +
+ tests/expected/blkid/low-probe-reiser4              |  1 +
+ tests/expected/blkid/low-probe-romfs                |  1 +
+ tests/expected/blkid/low-probe-small-fat32          |  1 +
+ tests/expected/blkid/low-probe-udf                  |  1 +
+ tests/expected/blkid/low-probe-udf-bdr-2.60-nero    |  1 +
+ .../blkid/low-probe-udf-cd-mkudfiso-20100208        |  1 +
+ tests/expected/blkid/low-probe-udf-cd-nero-6        |  1 +
+ .../blkid/low-probe-udf-hdd-macosx-2.60-4096        |  1 +
+ .../blkid/low-probe-udf-hdd-mkudffs-1.0.0-1         |  1 +
+ .../blkid/low-probe-udf-hdd-mkudffs-1.0.0-2         |  1 +
+ .../expected/blkid/low-probe-udf-hdd-mkudffs-1.3-1  |  1 +
+ .../expected/blkid/low-probe-udf-hdd-mkudffs-1.3-2  |  1 +
+ .../expected/blkid/low-probe-udf-hdd-mkudffs-1.3-3  |  1 +
+ .../expected/blkid/low-probe-udf-hdd-mkudffs-1.3-4  |  1 +
+ .../expected/blkid/low-probe-udf-hdd-mkudffs-1.3-5  |  1 +
+ .../expected/blkid/low-probe-udf-hdd-mkudffs-1.3-6  |  1 +
+ .../expected/blkid/low-probe-udf-hdd-mkudffs-1.3-7  |  1 +
+ .../expected/blkid/low-probe-udf-hdd-mkudffs-1.3-8  |  1 +
+ tests/expected/blkid/low-probe-udf-hdd-mkudffs-2.2  |  1 +
+ .../blkid/low-probe-udf-hdd-udfclient-0.7.5         |  1 +
+ .../blkid/low-probe-udf-hdd-udfclient-0.7.7         |  1 +
+ tests/expected/blkid/low-probe-udf-hdd-win7         |  1 +
+ .../blkid/low-probe-udf-multi-genisoimage-0         |  1 +
+ .../blkid/low-probe-udf-multi-genisoimage-417       |  1 +
+ .../blkid/low-probe-udf-multi-genisoimage-834       |  1 +
+ tests/expected/blkid/low-probe-udf-multi-mkudffs-0  |  1 +
+ .../expected/blkid/low-probe-udf-multi-mkudffs-320  |  1 +
+ .../expected/blkid/low-probe-udf-multi-mkudffs-640  |  1 +
+ tests/expected/blkid/low-probe-ufs                  |  1 +
+ tests/expected/blkid/low-probe-xfs                  |  1 +
+ tests/expected/blkid/low-probe-xfs-v5               |  1 +
+ tests/expected/blkid/low-probe-zfs                  |  1 +
+ tests/expected/blkid/low-probe-zonefs               |  1 +
+ 110 files changed, 144 insertions(+), 8 deletions(-)
+
+diff --git a/libblkid/src/superblocks/apfs.c b/libblkid/src/superblocks/apfs.c
+index 3332ef228..048423a8b 100644
+--- a/libblkid/src/superblocks/apfs.c
++++ b/libblkid/src/superblocks/apfs.c
+@@ -65,6 +65,7 @@ static int probe_apfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 	if (blkid_probe_set_uuid(pr, sb->uuid) < 0)
+ 		return BLKID_PROBE_NONE;
+ 
++	blkid_probe_set_fsblocksize(pr, le32_to_cpu(sb->block_size));
+ 	blkid_probe_set_block_size(pr, le32_to_cpu(sb->block_size));
+ 
+ 	return BLKID_PROBE_OK;
+diff --git a/libblkid/src/superblocks/befs.c b/libblkid/src/superblocks/befs.c
+index 211feae9f..1ba0e10ae 100644
+--- a/libblkid/src/superblocks/befs.c
++++ b/libblkid/src/superblocks/befs.c
+@@ -521,6 +521,7 @@ static int probe_befs(blkid_probe pr, const struct blkid_idmag *mag)
+ 					sizeof(volume_id), "%016" PRIx64,
+ 					FS64_TO_CPU(volume_id, fs_le));
+ 
++	blkid_probe_set_fsblocksize(pr, block_size);
+ 	blkid_probe_set_block_size(pr, block_size);
+ 
+ 	return BLKID_PROBE_OK;
+diff --git a/libblkid/src/superblocks/btrfs.c b/libblkid/src/superblocks/btrfs.c
+index 9708f2e28..06a27529a 100644
+--- a/libblkid/src/superblocks/btrfs.c
++++ b/libblkid/src/superblocks/btrfs.c
+@@ -74,6 +74,7 @@ static int probe_btrfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 
+ 	blkid_probe_set_uuid(pr, bfs->fsid);
+ 	blkid_probe_set_uuid_as(pr, bfs->dev_item.uuid, "UUID_SUB");
++	blkid_probe_set_fsblocksize(pr, le32_to_cpu(bfs->sectorsize));
+ 	blkid_probe_set_block_size(pr, le32_to_cpu(bfs->sectorsize));
+ 
+ 	uint32_t sectorsize_log = 31 -
+diff --git a/libblkid/src/superblocks/erofs.c b/libblkid/src/superblocks/erofs.c
+index 0e7b4223d..30914a89c 100644
+--- a/libblkid/src/superblocks/erofs.c
++++ b/libblkid/src/superblocks/erofs.c
+@@ -51,8 +51,11 @@ static int probe_erofs(blkid_probe pr, const struct blkid_idmag *mag)
+ 
+ 	blkid_probe_set_uuid(pr, sb->uuid);
+ 
+-	if (sb->blkszbits < 32)
++	if (sb->blkszbits < 32){
++		blkid_probe_set_fsblocksize(pr, 1U << sb->blkszbits);
+ 		blkid_probe_set_block_size(pr, 1U << sb->blkszbits);
++	}
++
+ 	return BLKID_PROBE_OK;
+ }
+ 
+diff --git a/libblkid/src/superblocks/exfat.c b/libblkid/src/superblocks/exfat.c
+index f586ec786..fd2b85655 100644
+--- a/libblkid/src/superblocks/exfat.c
++++ b/libblkid/src/superblocks/exfat.c
+@@ -139,6 +139,7 @@ static int probe_exfat(blkid_probe pr, const struct blkid_idmag *mag)
+ 	blkid_probe_sprintf_version(pr, "%u.%u",
+ 			sb->version.vermaj, sb->version.vermin);
+ 
++	blkid_probe_set_fsblocksize(pr, BLOCK_SIZE(sb));
+ 	blkid_probe_set_block_size(pr, BLOCK_SIZE(sb));
+ 
+ 	return BLKID_PROBE_OK;
+diff --git a/libblkid/src/superblocks/exfs.c b/libblkid/src/superblocks/exfs.c
+index e0eafafc6..87dc0a0c7 100644
+--- a/libblkid/src/superblocks/exfs.c
++++ b/libblkid/src/superblocks/exfs.c
+@@ -173,6 +173,7 @@ static int probe_exfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 
+ 	blkid_probe_set_uuid(pr, xs->sb_uuid);
+ 
++	blkid_probe_set_fsblocksize(pr, be32_to_cpu(xs->sb_blocksize));
+ 	blkid_probe_set_block_size(pr, be32_to_cpu(xs->sb_blocksize));
+ 
+ 	return 0;
+diff --git a/libblkid/src/superblocks/ext.c b/libblkid/src/superblocks/ext.c
+index 0b9023734..cbbe8eb96 100644
+--- a/libblkid/src/superblocks/ext.c
++++ b/libblkid/src/superblocks/ext.c
+@@ -189,8 +189,10 @@ static void ext_get_info(blkid_probe pr, int ver, struct ext2_super_block *es)
+ 		le32_to_cpu(es->s_rev_level),
+ 		le16_to_cpu(es->s_minor_rev_level));
+ 
+-	if (le32_to_cpu(es->s_log_block_size) < 32)
++	if (le32_to_cpu(es->s_log_block_size) < 32){
++		blkid_probe_set_fsblocksize(pr, 1024U << le32_to_cpu(es->s_log_block_size));
+ 		blkid_probe_set_block_size(pr, 1024U << le32_to_cpu(es->s_log_block_size));
++	}
+ 
+ 	uint64_t fslastblock = le32_to_cpu(es->s_blocks_count) |
+ 		((s_feature_incompat & EXT4_FEATURE_INCOMPAT_64BIT) ?
+diff --git a/libblkid/src/superblocks/f2fs.c b/libblkid/src/superblocks/f2fs.c
+index aed93e25b..f271e8047 100644
+--- a/libblkid/src/superblocks/f2fs.c
++++ b/libblkid/src/superblocks/f2fs.c
+@@ -78,8 +78,10 @@ static int probe_f2fs(blkid_probe pr, const struct blkid_idmag *mag)
+ 
+ 	blkid_probe_set_uuid(pr, sb->uuid);
+ 	blkid_probe_sprintf_version(pr, "%u.%u", vermaj, vermin);
+-	if (le32_to_cpu(sb->log_blocksize) < 32)
++	if (le32_to_cpu(sb->log_blocksize) < 32){
++		blkid_probe_set_fsblocksize(pr, 1U << le32_to_cpu(sb->log_blocksize));
+ 		blkid_probe_set_block_size(pr, 1U << le32_to_cpu(sb->log_blocksize));
++	}
+ 	return 0;
+ }
+ 
+diff --git a/libblkid/src/superblocks/gfs.c b/libblkid/src/superblocks/gfs.c
+index 37a74b157..445c0dafa 100644
+--- a/libblkid/src/superblocks/gfs.c
++++ b/libblkid/src/superblocks/gfs.c
+@@ -106,6 +106,7 @@ static int probe_gfs2(blkid_probe pr, const struct blkid_idmag *mag)
+ 				sizeof(sbd->sb_locktable));
+ 		blkid_probe_set_uuid(pr, sbd->sb_uuid);
+ 		blkid_probe_set_version(pr, "1");
++		blkid_probe_set_fsblocksize(pr, be32_to_cpu(sbd->sb_bsize));
+ 		blkid_probe_set_block_size(pr, be32_to_cpu(sbd->sb_bsize));
+ 		return 0;
+ 	}
+diff --git a/libblkid/src/superblocks/hfs.c b/libblkid/src/superblocks/hfs.c
+index ebf90e49e..9674b1481 100644
+--- a/libblkid/src/superblocks/hfs.c
++++ b/libblkid/src/superblocks/hfs.c
+@@ -241,6 +241,7 @@ static int probe_hfsplus(blkid_probe pr, const struct blkid_idmag *mag)
+ 	if (blocksize < HFSPLUS_SECTOR_SIZE)
+ 		return 1;
+ 
++	blkid_probe_set_fsblocksize(pr, blocksize);
+ 	blkid_probe_set_block_size(pr, blocksize);
+ 
+ 	memcpy(extents, hfsplus->cat_file.extents, sizeof(extents));
+diff --git a/libblkid/src/superblocks/hpfs.c b/libblkid/src/superblocks/hpfs.c
+index dcf4520b6..09bf975ea 100644
+--- a/libblkid/src/superblocks/hpfs.c
++++ b/libblkid/src/superblocks/hpfs.c
+@@ -99,6 +99,7 @@ static int probe_hpfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 				hbb->vol_serno[1], hbb->vol_serno[0]);
+ 	}
+ 	blkid_probe_sprintf_version(pr, "%u", version);
++	blkid_probe_set_fsblocksize(pr, 512);
+ 	blkid_probe_set_block_size(pr, 512);
+ 
+ 	return 0;
+diff --git a/libblkid/src/superblocks/iso9660.c b/libblkid/src/superblocks/iso9660.c
+index 289a325c8..503126c00 100644
+--- a/libblkid/src/superblocks/iso9660.c
++++ b/libblkid/src/superblocks/iso9660.c
+@@ -90,6 +90,7 @@ static int probe_iso9660_hsfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 	if (!iso)
+ 		return errno ? -errno : 1;
+ 
++	blkid_probe_set_fsblocksize(pr, ISO_SECTOR_SIZE);
+ 	blkid_probe_set_block_size(pr, ISO_SECTOR_SIZE);
+ 	blkid_probe_set_version(pr, "High Sierra");
+ 	blkid_probe_set_label(pr, iso->volume_id, sizeof(iso->volume_id));
+@@ -249,6 +250,7 @@ static int probe_iso9660(blkid_probe pr, const struct blkid_idmag *mag)
+ 	if (!pvd)
+ 		return errno ? -errno : 1;
+ 
++	blkid_probe_set_fsblocksize(pr, ISO_SECTOR_SIZE);
+ 	blkid_probe_set_block_size(pr, ISO_SECTOR_SIZE);
+ 
+ 	if (joliet && (len = merge_utf16be_ascii(buf, joliet->system_id, pvd->system_id, sizeof(pvd->system_id))) != 0)
+diff --git a/libblkid/src/superblocks/jfs.c b/libblkid/src/superblocks/jfs.c
+index 3de8c2e3d..e22467246 100644
+--- a/libblkid/src/superblocks/jfs.c
++++ b/libblkid/src/superblocks/jfs.c
+@@ -52,6 +52,7 @@ static int probe_jfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 	if (*((char *) js->js_label) != '\0')
+ 		blkid_probe_set_label(pr, js->js_label, sizeof(js->js_label));
+ 	blkid_probe_set_uuid(pr, js->js_uuid);
++	blkid_probe_set_fsblocksize(pr, le32_to_cpu(js->js_bsize));
+ 	blkid_probe_set_block_size(pr, le32_to_cpu(js->js_bsize));
+ 	return 0;
+ }
+diff --git a/libblkid/src/superblocks/minix.c b/libblkid/src/superblocks/minix.c
+index b521efb2b..6011842f7 100644
+--- a/libblkid/src/superblocks/minix.c
++++ b/libblkid/src/superblocks/minix.c
+@@ -148,6 +148,7 @@ static int probe_minix(blkid_probe pr,
+ 		return 1;
+ 
+ 	blkid_probe_sprintf_version(pr, "%d", version);
++	blkid_probe_set_fsblocksize(pr, block_size);
+ 	blkid_probe_set_block_size(pr, block_size);
+ 	return 0;
+ }
+diff --git a/libblkid/src/superblocks/nilfs.c b/libblkid/src/superblocks/nilfs.c
+index 423bd1ac4..ca7574a52 100644
+--- a/libblkid/src/superblocks/nilfs.c
++++ b/libblkid/src/superblocks/nilfs.c
+@@ -157,8 +157,10 @@ static int probe_nilfs2(blkid_probe pr,
+ 				(unsigned char *) &sb->s_magic))
+ 		return 1;
+ 
+-	if (le32_to_cpu(sb->s_log_block_size) < 32)
++	if (le32_to_cpu(sb->s_log_block_size) < 32){
++		blkid_probe_set_fsblocksize(pr, 1024U << le32_to_cpu(sb->s_log_block_size));
+ 		blkid_probe_set_block_size(pr, 1024U << le32_to_cpu(sb->s_log_block_size));
++	}
+ 
+ 	return 0;
+ }
+diff --git a/libblkid/src/superblocks/ntfs.c b/libblkid/src/superblocks/ntfs.c
+index be2e3d895..9f1927cf7 100644
+--- a/libblkid/src/superblocks/ntfs.c
++++ b/libblkid/src/superblocks/ntfs.c
+@@ -208,6 +208,8 @@ static int __probe_ntfs(blkid_probe pr, const struct blkid_idmag *mag, int save_
+ 		attr_off += attr_len;
+ 	}
+ 
++
++	blkid_probe_set_fsblocksize(pr, sector_size * sectors_per_cluster);
+ 	blkid_probe_set_block_size(pr, sector_size);
+ 
+ 	blkid_probe_sprintf_uuid(pr,
+diff --git a/libblkid/src/superblocks/ocfs.c b/libblkid/src/superblocks/ocfs.c
+index 463ed7bcf..28df6ddfa 100644
+--- a/libblkid/src/superblocks/ocfs.c
++++ b/libblkid/src/superblocks/ocfs.c
+@@ -153,8 +153,10 @@ static int probe_ocfs2(blkid_probe pr, const struct blkid_idmag *mag)
+ 		le16_to_cpu(osb->s_major_rev_level),
+ 		le16_to_cpu(osb->s_minor_rev_level));
+ 
+-	if (le32_to_cpu(osb->s_blocksize_bits) < 32)
++	if (le32_to_cpu(osb->s_blocksize_bits) < 32){
++		blkid_probe_set_fsblocksize(pr, 1U << le32_to_cpu(osb->s_blocksize_bits));
+ 		blkid_probe_set_block_size(pr, 1U << le32_to_cpu(osb->s_blocksize_bits));
++	}
+ 
+ 	return 0;
+ }
+diff --git a/libblkid/src/superblocks/reiserfs.c b/libblkid/src/superblocks/reiserfs.c
+index 6c5e5b0d7..23d10e2e2 100644
+--- a/libblkid/src/superblocks/reiserfs.c
++++ b/libblkid/src/superblocks/reiserfs.c
+@@ -74,6 +74,7 @@ static int probe_reiser(blkid_probe pr, const struct blkid_idmag *mag)
+ 	else
+ 		blkid_probe_set_version(pr, "3.5");
+ 
++	blkid_probe_set_fsblocksize(pr, blocksize);
+ 	blkid_probe_set_block_size(pr, blocksize);
+ 
+ 	return 0;
+@@ -95,6 +96,7 @@ static int probe_reiser4(blkid_probe pr, const struct blkid_idmag *mag)
+ 	blkid_probe_set_uuid(pr, rs4->rs4_uuid);
+ 	blkid_probe_set_version(pr, "4");
+ 
++	blkid_probe_set_fsblocksize(pr, blocksize);
+ 	blkid_probe_set_block_size(pr, blocksize);
+ 
+ 	return 0;
+diff --git a/libblkid/src/superblocks/romfs.c b/libblkid/src/superblocks/romfs.c
+index 1c2ac4315..8db88775b 100644
+--- a/libblkid/src/superblocks/romfs.c
++++ b/libblkid/src/superblocks/romfs.c
+@@ -35,6 +35,7 @@ static int probe_romfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 		blkid_probe_set_label(pr, ros->ros_volume,
+ 				sizeof(ros->ros_volume));
+ 
++	blkid_probe_set_fsblocksize(pr, 1024);
+ 	blkid_probe_set_block_size(pr, 1024);
+ 
+ 	return 0;
+diff --git a/libblkid/src/superblocks/squashfs.c b/libblkid/src/superblocks/squashfs.c
+index 4db842493..d85ff8f1a 100644
+--- a/libblkid/src/superblocks/squashfs.c
++++ b/libblkid/src/superblocks/squashfs.c
+@@ -71,6 +71,7 @@ static int probe_squashfs3(blkid_probe pr, const struct blkid_idmag *mag)
+ 
+ 	blkid_probe_sprintf_version(pr, "%u.%u", vermaj, vermin);
+ 
++	blkid_probe_set_fsblocksize(pr, 1024);
+ 	blkid_probe_set_block_size(pr, 1024);
+ 
+ 	return 0;
+diff --git a/libblkid/src/superblocks/superblocks.c b/libblkid/src/superblocks/superblocks.c
+index a1f42c611..9cfa991fc 100644
+--- a/libblkid/src/superblocks/superblocks.c
++++ b/libblkid/src/superblocks/superblocks.c
+@@ -70,6 +70,8 @@
+  *
+  * @FSLASTBLOCK: last fsblock/total number of fsblocks
+  *
++ * @FSBLOCKSIZE: file system block size
++ *
+  * @SYSTEM_ID: ISO9660 system identifier
+  *
+  * @PUBLISHER_ID: ISO9660 publisher identifier
+@@ -613,6 +615,17 @@ int blkid_probe_set_fslastblock(blkid_probe pr, uint64_t lastblock)
+ 			lastblock);
+ }
+ 
++int blkid_probe_set_fsblocksize(blkid_probe pr, uint32_t block_size)
++{
++	struct blkid_chain *chn = blkid_probe_get_chain(pr);
++
++	if (!(chn->flags & BLKID_SUBLKS_FSINFO))
++		return 0;
++
++	return blkid_probe_sprintf_value(pr, "FSBLOCKSIZE", "%" PRIu32,
++			block_size);
++}
++
+ int blkid_probe_set_id_label(blkid_probe pr, const char *name,
+ 			     const unsigned char *data, size_t len)
+ {
+diff --git a/libblkid/src/superblocks/superblocks.h b/libblkid/src/superblocks/superblocks.h
+index 251e2e386..8a1b85dda 100644
+--- a/libblkid/src/superblocks/superblocks.h
++++ b/libblkid/src/superblocks/superblocks.h
+@@ -113,6 +113,7 @@ extern int blkid_probe_set_utf8_id_label(blkid_probe pr, const char *name,
+ int blkid_probe_set_block_size(blkid_probe pr, unsigned block_size);
+ int blkid_probe_set_fssize(blkid_probe pr, uint64_t size);
+ int blkid_probe_set_fslastblock(blkid_probe pr, uint64_t lastblock);
++int blkid_probe_set_fsblocksize(blkid_probe pr, uint32_t block_size);
+ 
+ extern int blkid_probe_is_bitlocker(blkid_probe pr);
+ extern int blkid_probe_is_ntfs(blkid_probe pr);
+diff --git a/libblkid/src/superblocks/udf.c b/libblkid/src/superblocks/udf.c
+index 9ed089ee4..36adf60f1 100644
+--- a/libblkid/src/superblocks/udf.c
++++ b/libblkid/src/superblocks/udf.c
+@@ -569,6 +569,7 @@ real_blksz:
+ 		 * E.g. number 0x0150 is revision 1.50, number 0x0201 is revision 2.01. */
+ 		blkid_probe_sprintf_version(pr, "%x.%02x", (unsigned int)(udf_rev >> 8), (unsigned int)(udf_rev & 0xFF));
+ 
++	blkid_probe_set_fsblocksize(pr, bs);
+ 	blkid_probe_set_block_size(pr, bs);
+ 
+ 	return 0;
+diff --git a/libblkid/src/superblocks/ufs.c b/libblkid/src/superblocks/ufs.c
+index 7a8396c1c..5da87b18f 100644
+--- a/libblkid/src/superblocks/ufs.c
++++ b/libblkid/src/superblocks/ufs.c
+@@ -233,10 +233,14 @@ found:
+ 			(unsigned char *) &ufs->fs_magic))
+ 		return 1;
+ 
++	uint32_t bsize = 0;
+ 	if (!is_be)
+-		blkid_probe_set_block_size(pr, le32_to_cpu(ufs->fs_fsize));
++		bsize = le32_to_cpu(ufs->fs_fsize);
+ 	else
+-		blkid_probe_set_block_size(pr, be32_to_cpu(ufs->fs_fsize));
++		bsize = be32_to_cpu(ufs->fs_fsize);
++
++	blkid_probe_set_fsblocksize(pr, bsize);
++	blkid_probe_set_block_size(pr, bsize);
+ 
+ 	return 0;
+ }
+diff --git a/libblkid/src/superblocks/vfat.c b/libblkid/src/superblocks/vfat.c
+index 71813485a..6cd58cc71 100644
+--- a/libblkid/src/superblocks/vfat.c
++++ b/libblkid/src/superblocks/vfat.c
+@@ -433,6 +433,7 @@ static int probe_vfat(blkid_probe pr, const struct blkid_idmag *mag)
+ 	if (version)
+ 		blkid_probe_set_version(pr, version);
+ 
++	blkid_probe_set_fsblocksize(pr, vs->vs_cluster_size * sector_size);
+ 	blkid_probe_set_block_size(pr, sector_size);
+ 
+ 	return 0;
+diff --git a/libblkid/src/superblocks/vxfs.c b/libblkid/src/superblocks/vxfs.c
+index d9d26adcf..0f3c07b0c 100644
+--- a/libblkid/src/superblocks/vxfs.c
++++ b/libblkid/src/superblocks/vxfs.c
+@@ -33,9 +33,11 @@ static int probe_vxfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 
+ 	if (le32_to_cpu(vxs->vs_magic) == 0xa501fcf5) {
+ 		blkid_probe_sprintf_version(pr, "%u", (unsigned int)le32_to_cpu(vxs->vs_version));
++		blkid_probe_set_fsblocksize(pr, le32_to_cpu(vxs->vs_bsize));
+ 		blkid_probe_set_block_size(pr, le32_to_cpu(vxs->vs_bsize));
+ 	} else if (be32_to_cpu(vxs->vs_magic) == 0xa501fcf5) {
+ 		blkid_probe_sprintf_version(pr, "%u", (unsigned int)be32_to_cpu(vxs->vs_version));
++		blkid_probe_set_fsblocksize(pr, be32_to_cpu(vxs->vs_bsize));
+ 		blkid_probe_set_block_size(pr, be32_to_cpu(vxs->vs_bsize));
+ 	}
+ 	return 0;
+diff --git a/libblkid/src/superblocks/xfs.c b/libblkid/src/superblocks/xfs.c
+index 1f2e92cac..2cc6f6179 100644
+--- a/libblkid/src/superblocks/xfs.c
++++ b/libblkid/src/superblocks/xfs.c
+@@ -184,6 +184,7 @@ static int probe_xfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 	blkid_probe_set_uuid(pr, xs->sb_uuid);
+ 	blkid_probe_set_fssize(pr, xfs_fssize(xs));
+ 	blkid_probe_set_fslastblock(pr, be64_to_cpu(xs->sb_dblocks));
++	blkid_probe_set_fsblocksize(pr, be32_to_cpu(xs->sb_blocksize));
+ 	blkid_probe_set_block_size(pr, be16_to_cpu(xs->sb_sectsize));
+ 	return 0;
+ }
+diff --git a/libblkid/src/superblocks/zfs.c b/libblkid/src/superblocks/zfs.c
+index 774a199e1..e7ca78c0d 100644
+--- a/libblkid/src/superblocks/zfs.c
++++ b/libblkid/src/superblocks/zfs.c
+@@ -138,8 +138,10 @@ static void zfs_process_value(blkid_probe pr, char *name, size_t namelen,
+ 		if (nvu_type != DATA_TYPE_UINT64)
+ 			return;
+ 
+-		if (nvu_value < 32)
++		if (nvu_value < 32){
++			blkid_probe_set_fsblocksize(pr, 1U << nvu_value);
+ 			blkid_probe_set_block_size(pr, 1U << nvu_value);
++		}
+ 	}
+ }
+ 
+diff --git a/libblkid/src/superblocks/zonefs.c b/libblkid/src/superblocks/zonefs.c
+index 4c826ec76..2cb7097d4 100644
+--- a/libblkid/src/superblocks/zonefs.c
++++ b/libblkid/src/superblocks/zonefs.c
+@@ -64,6 +64,7 @@ static int probe_zonefs(blkid_probe pr,
+ 				      sizeof(sb->s_label));
+ 
+ 	blkid_probe_set_uuid(pr, sb->s_uuid);
++	blkid_probe_set_fsblocksize(pr, ZONEFS_BLOCK_SIZE);
+ 	blkid_probe_set_block_size(pr, ZONEFS_BLOCK_SIZE);
+ 
+ 	return 0;
+diff --git a/tests/expected/blkid/low-probe-befs b/tests/expected/blkid/low-probe-befs
+index 5717049d2..738114769 100644
+--- a/tests/expected/blkid/low-probe-befs
++++ b/tests/expected/blkid/low-probe-befs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_LABEL=befs_test
+ ID_FS_LABEL_ENC=befs_test
+ ID_FS_TYPE=befs
+diff --git a/tests/expected/blkid/low-probe-btrfs b/tests/expected/blkid/low-probe-btrfs
+index 48649389a..a626bc1f6 100644
+--- a/tests/expected/blkid/low-probe-btrfs
++++ b/tests/expected/blkid/low-probe-btrfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_FSLASTBLOCK=29440
+ ID_FS_TYPE=btrfs
+ ID_FS_USAGE=filesystem
+diff --git a/tests/expected/blkid/low-probe-erofs b/tests/expected/blkid/low-probe-erofs
+index 1d1600fa0..b815c7e5d 100644
+--- a/tests/expected/blkid/low-probe-erofs
++++ b/tests/expected/blkid/low-probe-erofs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_TYPE=erofs
+ ID_FS_USAGE=filesystem
+ ID_FS_UUID=2375febf-f260-479d-ade7-952494047cb4
+diff --git a/tests/expected/blkid/low-probe-exfat b/tests/expected/blkid/low-probe-exfat
+index 59cb35225..24d2cac5d 100644
+--- a/tests/expected/blkid/low-probe-exfat
++++ b/tests/expected/blkid/low-probe-exfat
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=Новый_том
+ ID_FS_LABEL_ENC=Новый\x20том
+ ID_FS_TYPE=exfat
+diff --git a/tests/expected/blkid/low-probe-ext2 b/tests/expected/blkid/low-probe-ext2
+index e236c6e8a..fa284a949 100644
+--- a/tests/expected/blkid/low-probe-ext2
++++ b/tests/expected/blkid/low-probe-ext2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_FSLASTBLOCK=100
+ ID_FS_LABEL=test-ext2
+ ID_FS_LABEL_ENC=test-ext2
+diff --git a/tests/expected/blkid/low-probe-ext3 b/tests/expected/blkid/low-probe-ext3
+index 164fefb7b..422d4fef3 100644
+--- a/tests/expected/blkid/low-probe-ext3
++++ b/tests/expected/blkid/low-probe-ext3
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_FSLASTBLOCK=2048
+ ID_FS_LABEL=test-ext3
+ ID_FS_LABEL_ENC=test-ext3
+diff --git a/tests/expected/blkid/low-probe-f2fs b/tests/expected/blkid/low-probe-f2fs
+index 272905125..1ee751d56 100644
+--- a/tests/expected/blkid/low-probe-f2fs
++++ b/tests/expected/blkid/low-probe-f2fs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=test-f2fs
+ ID_FS_LABEL_ENC=test-f2fs
+ ID_FS_TYPE=f2fs
+diff --git a/tests/expected/blkid/low-probe-fat b/tests/expected/blkid/low-probe-fat
+index a463cc987..bb686b24e 100644
+--- a/tests/expected/blkid/low-probe-fat
++++ b/tests/expected/blkid/low-probe-fat
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=TEST-FAT
+ ID_FS_LABEL_ENC=TEST-FAT
+ ID_FS_LABEL_FATBOOT=TEST-FAT
+diff --git a/tests/expected/blkid/low-probe-fat16_noheads b/tests/expected/blkid/low-probe-fat16_noheads
+index ff9ef2e69..5b8fc916e 100644
+--- a/tests/expected/blkid/low-probe-fat16_noheads
++++ b/tests/expected/blkid/low-probe-fat16_noheads
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=VTech_1070
+ ID_FS_LABEL_ENC=VTech\x201070
+ ID_FS_SEC_TYPE=msdos
+diff --git a/tests/expected/blkid/low-probe-fat32_cp850_O_tilde b/tests/expected/blkid/low-probe-fat32_cp850_O_tilde
+index ca49f200d..16c519884 100644
+--- a/tests/expected/blkid/low-probe-fat32_cp850_O_tilde
++++ b/tests/expected/blkid/low-probe-fat32_cp850_O_tilde
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=___
+ ID_FS_LABEL_ENC=\xe5\xe5\xe5
+ ID_FS_LABEL_FATBOOT=___
+diff --git a/tests/expected/blkid/low-probe-fat32_label_64MB b/tests/expected/blkid/low-probe-fat32_label_64MB
+index 4a99f8ff6..41b656a84 100644
+--- a/tests/expected/blkid/low-probe-fat32_label_64MB
++++ b/tests/expected/blkid/low-probe-fat32_label_64MB
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=BINGO
+ ID_FS_LABEL_ENC=BINGO
+ ID_FS_TYPE=vfat
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1 b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1
+index 5d1771de3..14aee2eb9 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=label1
+ ID_FS_LABEL_ENC=label1
+ ID_FS_LABEL_FATBOOT=label1
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_NO_NAME b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_NO_NAME
+index c13af9021..1891157ed 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_NO_NAME
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_NO_NAME
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=NO_NAME
+ ID_FS_LABEL_ENC=NO\x20NAME
+ ID_FS_TYPE=vfat
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_empty b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_empty
+index 73c553e54..206782fa9 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_empty
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_empty
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_TYPE=vfat
+ ID_FS_USAGE=filesystem
+ ID_FS_UUID=92B4-BA66
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_label2 b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_label2
+index 4b8146208..cf635a218 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_label2
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_dosfslabel_label2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=label2
+ ID_FS_LABEL_ENC=label2
+ ID_FS_LABEL_FATBOOT=label2
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_mlabel_NO_NAME b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_mlabel_NO_NAME
+index c13af9021..1891157ed 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_mlabel_NO_NAME
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_mlabel_NO_NAME
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=NO_NAME
+ ID_FS_LABEL_ENC=NO\x20NAME
+ ID_FS_TYPE=vfat
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_mlabel_erase b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_mlabel_erase
+index 73c553e54..206782fa9 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_mlabel_erase
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_mlabel_erase
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_TYPE=vfat
+ ID_FS_USAGE=filesystem
+ ID_FS_UUID=92B4-BA66
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_xp_erase b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_xp_erase
+index 075278de4..6088d17be 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_xp_erase
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_xp_erase
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL_FATBOOT=label1
+ ID_FS_LABEL_FATBOOT_ENC=label1
+ ID_FS_TYPE=vfat
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_xp_label2 b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_xp_label2
+index fe4884d28..802a66f14 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_xp_label2
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_label1_xp_label2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=LABEL2
+ ID_FS_LABEL_ENC=LABEL2
+ ID_FS_LABEL_FATBOOT=label1
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_none b/tests/expected/blkid/low-probe-fat32_mkdosfs_none
+index 547517616..66a7923ed 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_none
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_none
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_TYPE=vfat
+ ID_FS_USAGE=filesystem
+ ID_FS_UUID=E6B8-AF8C
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_NO_NAME b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_NO_NAME
+index 547517616..66a7923ed 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_NO_NAME
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_NO_NAME
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_TYPE=vfat
+ ID_FS_USAGE=filesystem
+ ID_FS_UUID=E6B8-AF8C
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_label1 b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_label1
+index dfacd9b6a..e45da35d8 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_label1
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_label1
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL_FATBOOT=label1
+ ID_FS_LABEL_FATBOOT_ENC=label1
+ ID_FS_TYPE=vfat
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_label1_xp_label2 b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_label1_xp_label2
+index 142259c87..ad2bf8fda 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_label1_xp_label2
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_dosfslabel_label1_xp_label2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=LABEL2
+ ID_FS_LABEL_ENC=LABEL2
+ ID_FS_LABEL_FATBOOT=label1
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_xp_label1 b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_xp_label1
+index d1360ada0..a5e490064 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_xp_label1
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_xp_label1
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=LABEL1
+ ID_FS_LABEL_ENC=LABEL1
+ ID_FS_TYPE=vfat
+diff --git a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_xp_label1_dosfslabel_label2 b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_xp_label1_dosfslabel_label2
+index c078359c6..e3473b9cc 100644
+--- a/tests/expected/blkid/low-probe-fat32_mkdosfs_none_xp_label1_dosfslabel_label2
++++ b/tests/expected/blkid/low-probe-fat32_mkdosfs_none_xp_label1_dosfslabel_label2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=label2
+ ID_FS_LABEL_ENC=label2
+ ID_FS_LABEL_FATBOOT=label2
+diff --git a/tests/expected/blkid/low-probe-fat32_xp_label1 b/tests/expected/blkid/low-probe-fat32_xp_label1
+index 8a27d7e1c..9a82d11c2 100644
+--- a/tests/expected/blkid/low-probe-fat32_xp_label1
++++ b/tests/expected/blkid/low-probe-fat32_xp_label1
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=LABEL1
+ ID_FS_LABEL_ENC=LABEL1
+ ID_FS_TYPE=vfat
+diff --git a/tests/expected/blkid/low-probe-fat32_xp_none b/tests/expected/blkid/low-probe-fat32_xp_none
+index f8271c2b7..b4d6f4fdf 100644
+--- a/tests/expected/blkid/low-probe-fat32_xp_none
++++ b/tests/expected/blkid/low-probe-fat32_xp_none
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_TYPE=vfat
+ ID_FS_USAGE=filesystem
+ ID_FS_UUID=54B6-DC94
+diff --git a/tests/expected/blkid/low-probe-fat32_xp_none_dosfslabel_label1 b/tests/expected/blkid/low-probe-fat32_xp_none_dosfslabel_label1
+index fdc5eb6f6..560b394a0 100644
+--- a/tests/expected/blkid/low-probe-fat32_xp_none_dosfslabel_label1
++++ b/tests/expected/blkid/low-probe-fat32_xp_none_dosfslabel_label1
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL_FATBOOT=label1
+ ID_FS_LABEL_FATBOOT_ENC=label1
+ ID_FS_TYPE=vfat
+diff --git a/tests/expected/blkid/low-probe-fat32_xp_none_mlabel_label1 b/tests/expected/blkid/low-probe-fat32_xp_none_mlabel_label1
+index 74f271519..1b0a87806 100644
+--- a/tests/expected/blkid/low-probe-fat32_xp_none_mlabel_label1
++++ b/tests/expected/blkid/low-probe-fat32_xp_none_mlabel_label1
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=LABEL1
+ ID_FS_LABEL_ENC=LABEL1
+ ID_FS_LABEL_FATBOOT=LABEL1
+diff --git a/tests/expected/blkid/low-probe-gfs2 b/tests/expected/blkid/low-probe-gfs2
+index f04529bc0..8b2840f41 100644
+--- a/tests/expected/blkid/low-probe-gfs2
++++ b/tests/expected/blkid/low-probe-gfs2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=mycluster:mygfs2
+ ID_FS_LABEL_ENC=mycluster:mygfs2
+ ID_FS_TYPE=gfs2
+diff --git a/tests/expected/blkid/low-probe-hfsplus b/tests/expected/blkid/low-probe-hfsplus
+index cc351a042..07e60ea25 100644
+--- a/tests/expected/blkid/low-probe-hfsplus
++++ b/tests/expected/blkid/low-probe-hfsplus
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=123456789ABCDE
+ ID_FS_LABEL_ENC=123456789ABCDE
+ ID_FS_TYPE=hfsplus
+diff --git a/tests/expected/blkid/low-probe-hpfs b/tests/expected/blkid/low-probe-hpfs
+index 7e4a12b97..a6198c640 100644
+--- a/tests/expected/blkid/low-probe-hpfs
++++ b/tests/expected/blkid/low-probe-hpfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=P01_S16A
+ ID_FS_LABEL_ENC=P01\x20S16A
+ ID_FS_TYPE=hpfs
+diff --git a/tests/expected/blkid/low-probe-iso b/tests/expected/blkid/low-probe-iso
+index 5c8a3d0fd..3e9be8f98 100644
+--- a/tests/expected/blkid/low-probe-iso
++++ b/tests/expected/blkid/low-probe-iso
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=GENISOIMAGE\x20ISO\x209660\x2fHFS\x20FILESYSTEM\x20CREATOR\x20\x28C\x29\x201993\x20E.YOUNGDALE\x20\x28C\x29\x201997-2006\x20J.PEARSON\x2fJ.SCHILLING\x20\x28C\x29\x202006-2007\x20CDRKIT\x20TEAM
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=IsoVolumeName
+ ID_FS_LABEL_ENC=IsoVolumeName
+ ID_FS_SYSTEM_ID=LINUX
+diff --git a/tests/expected/blkid/low-probe-iso-different-iso-joliet-label b/tests/expected/blkid/low-probe-iso-different-iso-joliet-label
+index f618d024d..34663a358 100644
+--- a/tests/expected/blkid/low-probe-iso-different-iso-joliet-label
++++ b/tests/expected/blkid/low-probe-iso-different-iso-joliet-label
+@@ -1,6 +1,7 @@
+ ID_FS_APPLICATION_ID=Joliet\x20Application
+ ID_FS_BLOCK_SIZE=2048
+ ID_FS_DATA_PREPARER_ID=Joliet\x20Preparer
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=Joliet_Label
+ ID_FS_LABEL_ENC=Joliet\x20Label
+ ID_FS_PUBLISHER_ID=Joliet\x20Publisher
+diff --git a/tests/expected/blkid/low-probe-iso-joliet b/tests/expected/blkid/low-probe-iso-joliet
+index e97dbde3c..c92484a75 100644
+--- a/tests/expected/blkid/low-probe-iso-joliet
++++ b/tests/expected/blkid/low-probe-iso-joliet
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=GENISOIMAGE\x20ISO\x209660\x2fHFS\x20FILESYSTEM\x20CREATOR\x20\x28C\x29\x201993\x20E.YOUNGDALE\x20\x28C\x29\x201997-2006\x20J.PEARSON\x2fJ.SCHILLING\x20\x28C\x29\x202006-2007\x20CDRKIT\x20TEAM
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=ThisWonderfulLabelIsVeryVeryLong
+ ID_FS_LABEL_ENC=ThisWonderfulLabelIsVeryVeryLong
+ ID_FS_SYSTEM_ID=LINUX
+diff --git a/tests/expected/blkid/low-probe-iso-multi-genisoimage-0 b/tests/expected/blkid/low-probe-iso-multi-genisoimage-0
+index d8217f529..eed747e48 100644
+--- a/tests/expected/blkid/low-probe-iso-multi-genisoimage-0
++++ b/tests/expected/blkid/low-probe-iso-multi-genisoimage-0
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=GENISOIMAGE\x20ISO\x209660\x2fHFS\x20FILESYSTEM\x20CREATOR\x20\x28C\x29\x201993\x20E.YOUNGDALE\x20\x28C\x29\x201997-2006\x20J.PEARSON\x2fJ.SCHILLING\x20\x28C\x29\x202006-2007\x20CDRKIT\x20TEAM
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=first_session
+ ID_FS_LABEL_ENC=first\x20session
+ ID_FS_SYSTEM_ID=LINUX
+diff --git a/tests/expected/blkid/low-probe-iso-multi-genisoimage-174 b/tests/expected/blkid/low-probe-iso-multi-genisoimage-174
+index 9c18d0dde..aa71cff78 100644
+--- a/tests/expected/blkid/low-probe-iso-multi-genisoimage-174
++++ b/tests/expected/blkid/low-probe-iso-multi-genisoimage-174
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=GENISOIMAGE\x20ISO\x209660\x2fHFS\x20FILESYSTEM\x20CREATOR\x20\x28C\x29\x201993\x20E.YOUNGDALE\x20\x28C\x29\x201997-2006\x20J.PEARSON\x2fJ.SCHILLING\x20\x28C\x29\x202006-2007\x20CDRKIT\x20TEAM
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=second_session
+ ID_FS_LABEL_ENC=second\x20session
+ ID_FS_SYSTEM_ID=LINUX
+diff --git a/tests/expected/blkid/low-probe-iso-multi-genisoimage-348 b/tests/expected/blkid/low-probe-iso-multi-genisoimage-348
+index 7e3c5ba01..caf2010a5 100644
+--- a/tests/expected/blkid/low-probe-iso-multi-genisoimage-348
++++ b/tests/expected/blkid/low-probe-iso-multi-genisoimage-348
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=GENISOIMAGE\x20ISO\x209660\x2fHFS\x20FILESYSTEM\x20CREATOR\x20\x28C\x29\x201993\x20E.YOUNGDALE\x20\x28C\x29\x201997-2006\x20J.PEARSON\x2fJ.SCHILLING\x20\x28C\x29\x202006-2007\x20CDRKIT\x20TEAM
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=third_session
+ ID_FS_LABEL_ENC=third\x20session
+ ID_FS_SYSTEM_ID=LINUX
+diff --git a/tests/expected/blkid/low-probe-iso-rr-joliet b/tests/expected/blkid/low-probe-iso-rr-joliet
+index 711e04bbc..fdfc69616 100644
+--- a/tests/expected/blkid/low-probe-iso-rr-joliet
++++ b/tests/expected/blkid/low-probe-iso-rr-joliet
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=GENISOIMAGE\x20ISO\x209660\x2fHFS\x20FILESYSTEM\x20CREATOR\x20\x28C\x29\x201993\x20E.YOUNGDALE\x20\x28C\x29\x201997-2006\x20J.PEARSON\x2fJ.SCHILLING\x20\x28C\x29\x202006-2007\x20CDRKIT\x20TEAM
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=ThisIsVolumeName
+ ID_FS_LABEL_ENC=ThisIsVolumeName
+ ID_FS_SYSTEM_ID=LINUX
+diff --git a/tests/expected/blkid/low-probe-iso-unicode-long-label b/tests/expected/blkid/low-probe-iso-unicode-long-label
+index 270ee8489..11403fdb0 100644
+--- a/tests/expected/blkid/low-probe-iso-unicode-long-label
++++ b/tests/expected/blkid/low-probe-iso-unicode-long-label
+@@ -1,6 +1,7 @@
+ ID_FS_APPLICATION_ID=Nero\x20Linux
+ ID_FS_BLOCK_SIZE=2048
+ ID_FS_DATA_PREPARER_ID=Naïve\x20and\x20very\x20looooooooooooooooooooooooooooooooooooooooooooooooOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONG\x20DATA\x20PREPARER
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=Naïve_and_very_lOOOOOOOONG_LABEL
+ ID_FS_LABEL_ENC=Naïve\x20and\x20very\x20lOOOOOOOONG_LABEL
+ ID_FS_PUBLISHER_ID=Naïve\x20and\x20very\x20looooooooooooooooooooooooooooooooooooooooooooooooOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOONG\x20PUBLISHER
+diff --git a/tests/expected/blkid/low-probe-jbd b/tests/expected/blkid/low-probe-jbd
+index f5462a2a3..36c7d4062 100644
+--- a/tests/expected/blkid/low-probe-jbd
++++ b/tests/expected/blkid/low-probe-jbd
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_FSLASTBLOCK=1024
+ ID_FS_LOGUUID=0d7a07df-7b06-4829-bce7-3b9c3ece570c
+ ID_FS_TYPE=jbd
+diff --git a/tests/expected/blkid/low-probe-jfs b/tests/expected/blkid/low-probe-jfs
+index ac7d31bac..ee6e1ead8 100644
+--- a/tests/expected/blkid/low-probe-jfs
++++ b/tests/expected/blkid/low-probe-jfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=test-jfs
+ ID_FS_LABEL_ENC=test-jfs
+ ID_FS_TYPE=jfs
+diff --git a/tests/expected/blkid/low-probe-minix-BE b/tests/expected/blkid/low-probe-minix-BE
+index f73f1b5db..c6da3c195 100644
+--- a/tests/expected/blkid/low-probe-minix-BE
++++ b/tests/expected/blkid/low-probe-minix-BE
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_TYPE=minix
+ ID_FS_USAGE=filesystem
+ ID_FS_VERSION=1
+diff --git a/tests/expected/blkid/low-probe-minix-LE b/tests/expected/blkid/low-probe-minix-LE
+index f73f1b5db..c6da3c195 100644
+--- a/tests/expected/blkid/low-probe-minix-LE
++++ b/tests/expected/blkid/low-probe-minix-LE
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_TYPE=minix
+ ID_FS_USAGE=filesystem
+ ID_FS_VERSION=1
+diff --git a/tests/expected/blkid/low-probe-nilfs2 b/tests/expected/blkid/low-probe-nilfs2
+index ff27e0b23..4bd466552 100644
+--- a/tests/expected/blkid/low-probe-nilfs2
++++ b/tests/expected/blkid/low-probe-nilfs2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=test-nilfs2
+ ID_FS_LABEL_ENC=test-nilfs2
+ ID_FS_TYPE=nilfs2
+diff --git a/tests/expected/blkid/low-probe-ntfs b/tests/expected/blkid/low-probe-ntfs
+index 790157aaa..64722f2a7 100644
+--- a/tests/expected/blkid/low-probe-ntfs
++++ b/tests/expected/blkid/low-probe-ntfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=Новый_том
+ ID_FS_LABEL_ENC=Новый\x20том
+ ID_FS_TYPE=ntfs
+diff --git a/tests/expected/blkid/low-probe-ocfs2 b/tests/expected/blkid/low-probe-ocfs2
+index 9b84dbe67..99189f39f 100644
+--- a/tests/expected/blkid/low-probe-ocfs2
++++ b/tests/expected/blkid/low-probe-ocfs2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_LABEL=test-ocfs2
+ ID_FS_LABEL_ENC=test-ocfs2
+ ID_FS_TYPE=ocfs2
+diff --git a/tests/expected/blkid/low-probe-reiser3 b/tests/expected/blkid/low-probe-reiser3
+index 1c4b1478d..3ae71201c 100644
+--- a/tests/expected/blkid/low-probe-reiser3
++++ b/tests/expected/blkid/low-probe-reiser3
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=TESTREISER
+ ID_FS_LABEL_ENC=TESTREISER
+ ID_FS_TYPE=reiserfs
+diff --git a/tests/expected/blkid/low-probe-reiser4 b/tests/expected/blkid/low-probe-reiser4
+index 66df064fd..f8896bb57 100644
+--- a/tests/expected/blkid/low-probe-reiser4
++++ b/tests/expected/blkid/low-probe-reiser4
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=TESTR4
+ ID_FS_LABEL_ENC=TESTR4
+ ID_FS_TYPE=reiser4
+diff --git a/tests/expected/blkid/low-probe-romfs b/tests/expected/blkid/low-probe-romfs
+index b56a6b881..2c606ecc1 100644
+--- a/tests/expected/blkid/low-probe-romfs
++++ b/tests/expected/blkid/low-probe-romfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_LABEL=test-romfs
+ ID_FS_LABEL_ENC=test-romfs
+ ID_FS_TYPE=romfs
+diff --git a/tests/expected/blkid/low-probe-small-fat32 b/tests/expected/blkid/low-probe-small-fat32
+index d9c63c710..e6ffb6550 100644
+--- a/tests/expected/blkid/low-probe-small-fat32
++++ b/tests/expected/blkid/low-probe-small-fat32
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=TESTVFAT
+ ID_FS_LABEL_ENC=TESTVFAT
+ ID_FS_LABEL_FATBOOT=TESTVFAT
+diff --git a/tests/expected/blkid/low-probe-udf b/tests/expected/blkid/low-probe-udf
+index b00ae7b8a..d8cd25bbf 100644
+--- a/tests/expected/blkid/low-probe-udf
++++ b/tests/expected/blkid/low-probe-udf
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=genisoimage
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=test-udf
+ ID_FS_LABEL_ENC=test-udf
+ ID_FS_LOGICAL_VOLUME_ID=test-udf
+diff --git a/tests/expected/blkid/low-probe-udf-bdr-2.60-nero b/tests/expected/blkid/low-probe-udf-bdr-2.60-nero
+index 006499223..677c2a353 100644
+--- a/tests/expected/blkid/low-probe-udf-bdr-2.60-nero
++++ b/tests/expected/blkid/low-probe-udf-bdr-2.60-nero
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Nero
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=Label
+ ID_FS_LABEL_ENC=Label
+ ID_FS_LOGICAL_VOLUME_ID=Label
+diff --git a/tests/expected/blkid/low-probe-udf-cd-mkudfiso-20100208 b/tests/expected/blkid/low-probe-udf-cd-mkudfiso-20100208
+index 649e5be94..924d78f7d 100644
+--- a/tests/expected/blkid/low-probe-udf-cd-mkudfiso-20100208
++++ b/tests/expected/blkid/low-probe-udf-cd-mkudfiso-20100208
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=mkudfiso
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=Volume_Label
+ ID_FS_LABEL_ENC=Volume\x20Label
+ ID_FS_LOGICAL_VOLUME_ID=Volume\x20Label
+diff --git a/tests/expected/blkid/low-probe-udf-cd-nero-6 b/tests/expected/blkid/low-probe-udf-cd-nero-6
+index 7474bc4db..bc1b5fe85 100644
+--- a/tests/expected/blkid/low-probe-udf-cd-nero-6
++++ b/tests/expected/blkid/low-probe-udf-cd-nero-6
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Nero
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=UDF_Label
+ ID_FS_LABEL_ENC=UDF\x20Label
+ ID_FS_LOGICAL_VOLUME_ID=UDF\x20Label
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-macosx-2.60-4096 b/tests/expected/blkid/low-probe-udf-hdd-macosx-2.60-4096
+index 152877a13..c8e5ac396 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-macosx-2.60-4096
++++ b/tests/expected/blkid/low-probe-udf-hdd-macosx-2.60-4096
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Mac\x20OS\x20X\x20udf\x20newfs_udf
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=Untitled_UDF_Volume
+ ID_FS_LABEL_ENC=Untitled\x20UDF\x20Volume
+ ID_FS_LOGICAL_VOLUME_ID=Untitled\x20UDF\x20Volume
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.0.0-1 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.0.0-1
+index 930259204..0f073c007 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.0.0-1
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.0.0-1
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=LinuxUDF
+ ID_FS_LABEL_ENC=LinuxUDF
+ ID_FS_LOGICAL_VOLUME_ID=LinuxUDF
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.0.0-2 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.0.0-2
+index a0fdb2ee2..c55e23326 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.0.0-2
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.0.0-2
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=Label
+ ID_FS_LABEL_ENC=Label
+ ID_FS_LOGICAL_VOLUME_ID=Label
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-1 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-1
+index ef36b84e0..37586914c 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-1
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-1
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=Label
+ ID_FS_LABEL_ENC=Label
+ ID_FS_LOGICAL_VOLUME_ID=Label
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-2 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-2
+index 58a8bf612..521e0ff12 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-2
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-2
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=Label
+ ID_FS_LABEL_ENC=Label
+ ID_FS_LOGICAL_VOLUME_ID=Label
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-3 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-3
+index 0e1e7706b..e720867bd 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-3
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-3
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=Ã¿
+ ID_FS_LABEL_ENC=Ã¿
+ ID_FS_LOGICAL_VOLUME_ID=Ã¿
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-4 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-4
+index 00561717d..ecd8c3c9f 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-4
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-4
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSBLOCKSIZE=1024
+ ID_FS_LABEL=Label
+ ID_FS_LABEL_ENC=Label
+ ID_FS_LOGICAL_VOLUME_ID=Label
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-5 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-5
+index 69ee62f97..df2d901f5 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-5
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-5
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=Label
+ ID_FS_LABEL_ENC=Label
+ ID_FS_LOGICAL_VOLUME_ID=Label
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-6 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-6
+index 2d3876b7e..aba8d2e48 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-6
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-6
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ ID_FS_LABEL_ENC=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+ ID_FS_LOGICAL_VOLUME_ID=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-7 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-7
+index e60bf1793..67faf3424 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-7
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-7
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_LABEL=Label4096
+ ID_FS_LABEL_ENC=Label4096
+ ID_FS_LOGICAL_VOLUME_ID=Label4096
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-8 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-8
+index 078578242..11a3bde27 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-8
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-1.3-8
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=LinuxUDF
+ ID_FS_LABEL_ENC=LinuxUDF
+ ID_FS_LOGICAL_VOLUME_ID=LinuxUDF
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-2.2 b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-2.2
+index 77300512a..c61e8b5eb 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-mkudffs-2.2
++++ b/tests/expected/blkid/low-probe-udf-hdd-mkudffs-2.2
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=😀
+ ID_FS_LABEL_ENC=😀
+ ID_FS_LOGICAL_VOLUME_ID=😀
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-udfclient-0.7.5 b/tests/expected/blkid/low-probe-udf-hdd-udfclient-0.7.5
+index 6cb1ffeee..c173bb8d6 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-udfclient-0.7.5
++++ b/tests/expected/blkid/low-probe-udf-hdd-udfclient-0.7.5
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=UDFtoolkit
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=discname
+ ID_FS_LABEL_ENC=discname
+ ID_FS_LOGICAL_VOLUME_ID=discname
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-udfclient-0.7.7 b/tests/expected/blkid/low-probe-udf-hdd-udfclient-0.7.7
+index 7a35e0f0d..4c71a0cce 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-udfclient-0.7.7
++++ b/tests/expected/blkid/low-probe-udf-hdd-udfclient-0.7.7
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=UDFtoolkit
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=discname
+ ID_FS_LABEL_ENC=discname
+ ID_FS_LOGICAL_VOLUME_ID=discname
+diff --git a/tests/expected/blkid/low-probe-udf-hdd-win7 b/tests/expected/blkid/low-probe-udf-hdd-win7
+index ad9616bc7..eafa7f019 100644
+--- a/tests/expected/blkid/low-probe-udf-hdd-win7
++++ b/tests/expected/blkid/low-probe-udf-hdd-win7
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Microsoft\x20Windows
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=My_volume_label
+ ID_FS_LABEL_ENC=My\x20volume\x20label
+ ID_FS_LOGICAL_VOLUME_ID=My\x20volume\x20label
+diff --git a/tests/expected/blkid/low-probe-udf-multi-genisoimage-0 b/tests/expected/blkid/low-probe-udf-multi-genisoimage-0
+index f598baaa0..5eeb78d33 100644
+--- a/tests/expected/blkid/low-probe-udf-multi-genisoimage-0
++++ b/tests/expected/blkid/low-probe-udf-multi-genisoimage-0
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=genisoimage
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=first_session
+ ID_FS_LABEL_ENC=first\x20session
+ ID_FS_LOGICAL_VOLUME_ID=first\x20session
+diff --git a/tests/expected/blkid/low-probe-udf-multi-genisoimage-417 b/tests/expected/blkid/low-probe-udf-multi-genisoimage-417
+index bb4d8c72f..5d2c7843f 100644
+--- a/tests/expected/blkid/low-probe-udf-multi-genisoimage-417
++++ b/tests/expected/blkid/low-probe-udf-multi-genisoimage-417
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=genisoimage
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=second_session
+ ID_FS_LABEL_ENC=second\x20session
+ ID_FS_LOGICAL_VOLUME_ID=second\x20session
+diff --git a/tests/expected/blkid/low-probe-udf-multi-genisoimage-834 b/tests/expected/blkid/low-probe-udf-multi-genisoimage-834
+index bc4dcba65..aa7a1630a 100644
+--- a/tests/expected/blkid/low-probe-udf-multi-genisoimage-834
++++ b/tests/expected/blkid/low-probe-udf-multi-genisoimage-834
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=genisoimage
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=third_session
+ ID_FS_LABEL_ENC=third\x20session
+ ID_FS_LOGICAL_VOLUME_ID=third\x20session
+diff --git a/tests/expected/blkid/low-probe-udf-multi-mkudffs-0 b/tests/expected/blkid/low-probe-udf-multi-mkudffs-0
+index 07557d7ca..a1a234e89 100644
+--- a/tests/expected/blkid/low-probe-udf-multi-mkudffs-0
++++ b/tests/expected/blkid/low-probe-udf-multi-mkudffs-0
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=first_session
+ ID_FS_LABEL_ENC=first\x20session
+ ID_FS_LOGICAL_VOLUME_ID=first\x20session
+diff --git a/tests/expected/blkid/low-probe-udf-multi-mkudffs-320 b/tests/expected/blkid/low-probe-udf-multi-mkudffs-320
+index 458cf3e23..84285894d 100644
+--- a/tests/expected/blkid/low-probe-udf-multi-mkudffs-320
++++ b/tests/expected/blkid/low-probe-udf-multi-mkudffs-320
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=second_session
+ ID_FS_LABEL_ENC=second\x20session
+ ID_FS_LOGICAL_VOLUME_ID=second\x20session
+diff --git a/tests/expected/blkid/low-probe-udf-multi-mkudffs-640 b/tests/expected/blkid/low-probe-udf-multi-mkudffs-640
+index 04cc4f11c..59c914280 100644
+--- a/tests/expected/blkid/low-probe-udf-multi-mkudffs-640
++++ b/tests/expected/blkid/low-probe-udf-multi-mkudffs-640
+@@ -1,5 +1,6 @@
+ ID_FS_APPLICATION_ID=Linux\x20mkudffs
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_LABEL=third_session
+ ID_FS_LABEL_ENC=third\x20session
+ ID_FS_LOGICAL_VOLUME_ID=third\x20session
+diff --git a/tests/expected/blkid/low-probe-ufs b/tests/expected/blkid/low-probe-ufs
+index 256f065d2..d771bc8d5 100644
+--- a/tests/expected/blkid/low-probe-ufs
++++ b/tests/expected/blkid/low-probe-ufs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=2048
++ID_FS_FSBLOCKSIZE=2048
+ ID_FS_TYPE=ufs
+ ID_FS_USAGE=filesystem
+ ID_FS_UUID=4b0e640aec56ac70
+diff --git a/tests/expected/blkid/low-probe-xfs b/tests/expected/blkid/low-probe-xfs
+index be9c4194a..0eb803f52 100644
+--- a/tests/expected/blkid/low-probe-xfs
++++ b/tests/expected/blkid/low-probe-xfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_FSLASTBLOCK=4096
+ ID_FS_FSSIZE=11862016
+ ID_FS_LABEL=test-xfs
+diff --git a/tests/expected/blkid/low-probe-xfs-v5 b/tests/expected/blkid/low-probe-xfs-v5
+index fd2cba933..7525b0888 100644
+--- a/tests/expected/blkid/low-probe-xfs-v5
++++ b/tests/expected/blkid/low-probe-xfs-v5
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_FSLASTBLOCK=5120
+ ID_FS_FSSIZE=17469440
+ ID_FS_LABEL=test-xfs-v5
+diff --git a/tests/expected/blkid/low-probe-zfs b/tests/expected/blkid/low-probe-zfs
+index 0e7af2866..f7e481b54 100644
+--- a/tests/expected/blkid/low-probe-zfs
++++ b/tests/expected/blkid/low-probe-zfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSBLOCKSIZE=512
+ ID_FS_LABEL=tank
+ ID_FS_LABEL_ENC=tank
+ ID_FS_TYPE=zfs_member
+diff --git a/tests/expected/blkid/low-probe-zonefs b/tests/expected/blkid/low-probe-zonefs
+index cc15459a1..59c86f3fd 100644
+--- a/tests/expected/blkid/low-probe-zonefs
++++ b/tests/expected/blkid/low-probe-zonefs
+@@ -1,3 +1,4 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSBLOCKSIZE=4096
+ ID_FS_TYPE=zonefs
+ ID_FS_USAGE=filesystem
+-- 
+2.36.1
+

@@ -1,0 +1,28 @@
+From bf0cd2995c5e34338703105c62e49a785c6c9dcc Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Fri, 3 Jun 2022 09:07:09 +0200
+Subject: uuidd: remove also PrivateNetwork=yes from systemd service
+
+Fixes: https://github.com/util-linux/util-linux/issues/1704
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2092943
+Upstream: http://github.com/util-linux/util-linux/commit/c9671a3cf7738bb81e1cbef2f56485a36c6e7623
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ misc-utils/uuidd.service.in | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/misc-utils/uuidd.service.in b/misc-utils/uuidd.service.in
+index 64580287f..4ad6d97c9 100644
+--- a/misc-utils/uuidd.service.in
++++ b/misc-utils/uuidd.service.in
+@@ -11,7 +11,6 @@ Group=uuidd
+ ProtectSystem=strict
+ ProtectHome=yes
+ PrivateDevices=yes
+-PrivateNetwork=yes
+ PrivateUsers=yes
+ ProtectKernelTunables=yes
+ ProtectKernelModules=yes
+-- 
+2.36.1
+

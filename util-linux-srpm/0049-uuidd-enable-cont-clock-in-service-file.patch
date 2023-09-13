@@ -1,0 +1,27 @@
+From 9d5e7c1357b8f4745d28b5a1aa8726b58666ad59 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Wed, 9 Aug 2023 13:12:34 +0200
+Subject: uuidd: enable cont-clock in service file
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2174748
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ misc-utils/uuidd.service.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/misc-utils/uuidd.service.in b/misc-utils/uuidd.service.in
+index 4ad6d97c9..330f1ab9b 100644
+--- a/misc-utils/uuidd.service.in
++++ b/misc-utils/uuidd.service.in
+@@ -4,7 +4,7 @@ Documentation=man:uuidd(8)
+ Requires=uuidd.socket
+ 
+ [Service]
+-ExecStart=@usrsbin_execdir@/uuidd --socket-activation
++ExecStart=@usrsbin_execdir@/uuidd --socket-activation --cont-clock
+ Restart=no
+ User=uuidd
+ Group=uuidd
+-- 
+2.40.1
+

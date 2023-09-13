@@ -1,0 +1,84 @@
+From 6275861012e63828a3c43b3acacb4dd623af848d Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Wed, 9 Aug 2023 13:30:49 +0200
+Subject: libuuid: backport cache handling from upstream
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2189947
+Upstream: http://github.com/util-linux/util-linux/commit/104dc2e092058489a4be17d5b15902e58ca56804
+Upstream: http://github.com/util-linux/util-linux/commit/2fa4168c8bc9d5438bc1dfadda293c7c21b6fa59
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ libuuid/src/gen_uuid.c | 33 ++++++++++++++++++++++++++++-----
+ 1 file changed, 28 insertions(+), 5 deletions(-)
+
+diff --git a/libuuid/src/gen_uuid.c b/libuuid/src/gen_uuid.c
+index f05db467e..619ef0131 100644
+--- a/libuuid/src/gen_uuid.c
++++ b/libuuid/src/gen_uuid.c
+@@ -528,18 +528,37 @@ int __uuid_generate_time_cont(uuid_t out, int *num, uint32_t cont_offset)
+  */
+ static int uuid_generate_time_generic(uuid_t out) {
+ #ifdef HAVE_TLS
++	/* thread local cache for uuidd based requests */
++	const int			cs_min = (1<<6);
++	const int			cs_max = (1<<18);
++	const int			cs_factor = 2;
+ 	THREAD_LOCAL int		num = 0;
++	THREAD_LOCAL int		cache_size = cs_min;
++	THREAD_LOCAL int		last_used = 0;
+ 	THREAD_LOCAL struct uuid	uu;
+ 	THREAD_LOCAL time_t		last_time = 0;
+ 	time_t				now;
+ 
+-	if (num > 0) {
++	if (num > 0) { /* expire cache */
+ 		now = time(NULL);
+-		if (now > last_time+1)
++		if (now > last_time+1) {
++			last_used = cache_size - num;
+ 			num = 0;
++		}
+ 	}
+-	if (num <= 0) {
+-		num = 1000;
++	if (num <= 0) { /* fill cache */
++		/*
++		 * num + OP_BULK provides a local cache in each application.
++		 * Start with a small cache size to cover short running applications
++		 * and adjust the cache size over the runntime.
++		 */
++		if ((last_used == cache_size) && (cache_size < cs_max))
++			cache_size *= cs_factor;
++		else if ((last_used < (cache_size / cs_factor)) && (cache_size > cs_min))
++			cache_size /= cs_factor;
++
++		num = cache_size;
++
+ 		if (get_uuid_via_daemon(UUIDD_OP_BULK_TIME_UUID,
+ 					out, &num) == 0) {
+ 			last_time = time(NULL);
+@@ -547,9 +566,11 @@ static int uuid_generate_time_generic(uuid_t out) {
+ 			num--;
+ 			return 0;
+ 		}
++		/* request to daemon failed, reset cache */
+ 		num = 0;
++		cache_size = cs_min;
+ 	}
+-	if (num > 0) {
++	if (num > 0) { /* serve uuid from cache */
+ 		uu.time_low++;
+ 		if (uu.time_low == 0) {
+ 			uu.time_mid++;
+@@ -558,6 +579,8 @@ static int uuid_generate_time_generic(uuid_t out) {
+ 		}
+ 		num--;
+ 		uuid_pack(&uu, out);
++		if (num == 0)
++			last_used = cache_size;
+ 		return 0;
+ 	}
+ #else
+-- 
+2.40.1
+

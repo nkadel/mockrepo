@@ -1,0 +1,162 @@
+From fe0b5c21d440ec00c5cba9b1c862aa189edc4446 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Thu, 10 Aug 2023 11:15:29 +0200
+Subject: tests: don't write mount hint to terminal
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2180414
+Upstream: http://github.com/util-linux/util-linux/commit/4b9e3937966f7ddf90e6013c87f73c260963b0ea
+Upstream: http://github.com/util-linux/util-linux/commit/ebbb108c5d1cb7c6a28671f2973fb706a35eacae
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ tests/ts/eject/umount            | 10 +++++-----
+ tests/ts/mount/fstab-btrfs       |  2 +-
+ tests/ts/mount/move              |  2 +-
+ tests/ts/mount/remount           |  9 +++++----
+ tests/ts/mount/shared-subtree    |  2 +-
+ tests/ts/mount/umount-alltargets |  6 +++---
+ tests/ts/mount/umount-recursive  |  4 ++--
+ 7 files changed, 18 insertions(+), 17 deletions(-)
+
+diff --git a/tests/ts/eject/umount b/tests/ts/eject/umount
+index 04f53ed99..6cbf12671 100755
+--- a/tests/ts/eject/umount
++++ b/tests/ts/eject/umount
+@@ -82,7 +82,7 @@ init_device
+ mkfs.ext2 -q -F $TS_DEVICE
+ udevadm settle
+ mkdir -p $TS_MOUNTPOINT
+-$TS_CMD_MOUNT $TS_DEVICE $TS_MOUNTPOINT
++$TS_CMD_MOUNT $TS_DEVICE $TS_MOUNTPOINT &> /dev/null
+ udevadm settle
+ $TS_CMD_EJECT --force $TS_DEVICE && ts_log "Success"
+ deinit_device
+@@ -94,8 +94,8 @@ init_device
+ init_partitions $TS_DEVICE
+ mkdir -p ${TS_MOUNTPOINT}1
+ mkdir -p ${TS_MOUNTPOINT}2
+-$TS_CMD_MOUNT ${TS_DEVICE}1 ${TS_MOUNTPOINT}1
+-$TS_CMD_MOUNT ${TS_DEVICE}2 ${TS_MOUNTPOINT}2
++$TS_CMD_MOUNT ${TS_DEVICE}1 ${TS_MOUNTPOINT}1 &> /dev/null
++$TS_CMD_MOUNT ${TS_DEVICE}2 ${TS_MOUNTPOINT}2 &> /dev/null
+ udevadm settle
+ $TS_CMD_EJECT --force $TS_DEVICE && ts_log "Success"
+ deinit_device
+@@ -115,8 +115,8 @@ init_device
+ init_partitions $TS_DEVICE
+ mkdir -p ${TS_MOUNTPOINT}1
+ mkdir -p ${TS_MOUNTPOINT}2
+-$TS_CMD_MOUNT ${TS_DEVICE}1 ${TS_MOUNTPOINT}1
+-$TS_CMD_MOUNT ${TS_DEVICE}2 ${TS_MOUNTPOINT}2
++$TS_CMD_MOUNT ${TS_DEVICE}1 ${TS_MOUNTPOINT}1 &> /dev/null
++$TS_CMD_MOUNT ${TS_DEVICE}2 ${TS_MOUNTPOINT}2 &> /dev/null
+ udevadm settle
+ $TS_CMD_EJECT --force ${TS_DEVICE}1 && ts_log "Success"
+ deinit_device
+diff --git a/tests/ts/mount/fstab-btrfs b/tests/ts/mount/fstab-btrfs
+index 0003b5d65..dff707047 100755
+--- a/tests/ts/mount/fstab-btrfs
++++ b/tests/ts/mount/fstab-btrfs
+@@ -51,7 +51,7 @@ DEVICE=$TS_LODEV
+ [ -d "$TS_MOUNTPOINT_BIND" ] || mkdir -p "$TS_MOUNTPOINT_BIND"
+ mkfs.btrfs -d single -m single $DEVICE &> /dev/null || ts_die "Cannot make btrfs on $DEVICE"
+ 
+-$TS_CMD_MOUNT -o loop "$DEVICE" "$TS_MOUNTPOINT_CREATE"
++$TS_CMD_MOUNT -o loop "$DEVICE" "$TS_MOUNTPOINT_CREATE" &> /dev/null
+ pushd . >/dev/null
+ cd "$TS_MOUNTPOINT_CREATE"
+ mkdir -p d0/dd0/ddd0
+diff --git a/tests/ts/mount/move b/tests/ts/mount/move
+index 9d2723a75..198732c4e 100755
+--- a/tests/ts/mount/move
++++ b/tests/ts/mount/move
+@@ -32,7 +32,7 @@ function mount_and_check {
+ 	# last arg must be an existing or to-be-mounted mountpoint
+ 	local mountpoint="${@: -1}"
+ 
+-	$TS_CMD_MOUNT "$@" \
++	$TS_CMD_MOUNT "$@" &> /dev/null \
+ 		|| ts_die "error: mount $*"
+ 
+ 	$TS_CMD_MOUNTPOINT -q "$mountpoint" \
+diff --git a/tests/ts/mount/remount b/tests/ts/mount/remount
+index 38db9bf9f..69fbf1815 100755
+--- a/tests/ts/mount/remount
++++ b/tests/ts/mount/remount
+@@ -43,15 +43,16 @@ fi
+ mkfs.ext2 $DEVICE &> /dev/null || ts_die "Cannot make ext2 on $DEVICE"
+ 
+ # mount read-write
+-$TS_CMD_MOUNT $DEVICE $TS_MOUNTPOINT || ts_die "Cannot mount $TS_MOUNTPOINT"
++$TS_CMD_MOUNT $DEVICE $TS_MOUNTPOINT &> /dev/null \
++	|| ts_die "Cannot mount $TS_MOUNTPOINT"
+ 
+ # check the mount
+ egrep -q "^$DEVICE $TS_MOUNTPOINT" $MTAB_FILE \
+- || ts_die "Cannot find $TS_MOUNTPOINT in $MTAB_FILE"
++	|| ts_die "Cannot find $TS_MOUNTPOINT in $MTAB_FILE"
+ 
+ # remount
+-$TS_CMD_MOUNT -o remount,ro $TS_MOUNTPOINT \
+- || ts_die "Cannot remount $TS_MOUNTPOINT"
++$TS_CMD_MOUNT -o remount,ro $TS_MOUNTPOINT &> /dev/null \
++	|| ts_die "Cannot remount $TS_MOUNTPOINT"
+ 
+ # check the remount
+ $TS_CMD_FINDMNT --kernel --mountpoint "$TS_MOUNTPOINT" --options "ro" &> /dev/null
+diff --git a/tests/ts/mount/shared-subtree b/tests/ts/mount/shared-subtree
+index 44b460b57..cb43ade57 100755
+--- a/tests/ts/mount/shared-subtree
++++ b/tests/ts/mount/shared-subtree
+@@ -17,7 +17,7 @@ ts_check_prog "mkfs.ext2"
+ [ -d $TS_MOUNTPOINT ] || mkdir -p $TS_MOUNTPOINT
+ 
+ # bind
+-$TS_CMD_MOUNT --bind $TS_MOUNTPOINT $TS_MOUNTPOINT
++$TS_CMD_MOUNT --bind $TS_MOUNTPOINT $TS_MOUNTPOINT &> /dev/null
+ [ "$?" = "0" ] || ts_die "error: mount --bind"
+ 
+ # check the bind
+diff --git a/tests/ts/mount/umount-alltargets b/tests/ts/mount/umount-alltargets
+index 37a163d87..83a04bafe 100755
+--- a/tests/ts/mount/umount-alltargets
++++ b/tests/ts/mount/umount-alltargets
+@@ -112,11 +112,11 @@ ts_finalize_subtest
+ ts_init_subtest "all-targets-recursive"
+ multi_mount ${TS_DEVICE}1 $MOUNTPOINT
+ [ -d "${MOUNTPOINT}1/subA" ] || mkdir -p ${MOUNTPOINT}1/subA
+-$TS_CMD_MOUNT ${TS_DEVICE}2 ${MOUNTPOINT}1/subA
++$TS_CMD_MOUNT ${TS_DEVICE}2 ${MOUNTPOINT}1/subA &> /dev/null
+ [ -d "${MOUNTPOINT}1/subA/subAB" ] || mkdir -p ${MOUNTPOINT}1/subA/subAB
+-$TS_CMD_MOUNT ${TS_DEVICE}3 ${MOUNTPOINT}1/subA/subAB
++$TS_CMD_MOUNT ${TS_DEVICE}3 ${MOUNTPOINT}1/subA/subAB &> /dev/null
+ [ -d "${MOUNTPOINT}1/subB" ] || mkdir -p ${MOUNTPOINT}1/subB
+-$TS_CMD_MOUNT ${TS_DEVICE}4 ${MOUNTPOINT}1/subB
++$TS_CMD_MOUNT ${TS_DEVICE}4 ${MOUNTPOINT}1/subB &> /dev/null
+ $TS_CMD_UMOUNT --recursive --all-targets ${TS_DEVICE}1 >> $TS_OUTPUT 2>> $TS_ERRLOG
+ [ $? == 0 ] || ts_log "umount failed"
+ ts_finalize_subtest
+diff --git a/tests/ts/mount/umount-recursive b/tests/ts/mount/umount-recursive
+index 700c58c12..3e1d66327 100755
+--- a/tests/ts/mount/umount-recursive
++++ b/tests/ts/mount/umount-recursive
+@@ -67,7 +67,7 @@ ts_log "Do tests..."
+ 
+ ts_log "A) Mount root"
+ $TS_CMD_MOUNT ${TS_DEVICE}1 $TS_MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+-$TS_CMD_MOUNT --make-shared $TS_MOUNTPOINT
++$TS_CMD_MOUNT --make-shared $TS_MOUNTPOINT &> /dev/null
+ 
+ ts_log "B) Mount child"
+ mkdir -p $TS_MOUNTPOINT/mntB
+@@ -86,7 +86,7 @@ $TS_CMD_MOUNT ${TS_DEVICE}4 $TS_MOUNTPOINT/mntB/mntD >> $TS_OUTPUT 2>> $TS_ERRLO
+ 
+ ts_log "E) Mount child-bind"
+ mkdir -p $TS_MOUNTPOINT/bindC
+-$TS_CMD_MOUNT --bind $TS_MOUNTPOINT/mntB/mntC $TS_MOUNTPOINT/bindC
++$TS_CMD_MOUNT --bind $TS_MOUNTPOINT/mntB/mntC $TS_MOUNTPOINT/bindC &> /dev/null
+ 
+ udevadm settle
+ $TS_CMD_UMOUNT --recursive $TS_MOUNTPOINT >> $TS_OUTPUT 2>> $TS_ERRLOG
+-- 
+2.40.1
+

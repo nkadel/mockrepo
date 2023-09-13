@@ -1,0 +1,54 @@
+From 006aca565d4c8565baf05296b8e65ca4d5f203d3 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Fri, 30 Jul 2021 13:22:54 +0200
+Subject: wdctl: Workaround reported boot-status bits not being present in
+ wd->ident.options
+
+Some watchdog drivers are capable of reporting WDIOF_CARDRESET in their
+bootstatus, but they do not advertise this in the options field
+returned by the WDIOC_GETSUPPORT ioctl.
+
+This causes wdctl to not print the CARDRESET flag on these devices,
+even when the reset was caused by the watchdog and this is being
+reported in the WDIOC_GETBOOTSTATUS return.
+
+Add a workaround by or-ing any bits which are set in the status and
+bstatus returns into wd->ident.options so that reported flags will
+get printend independent of them being advertised as supported in
+wd->ident.options.
+
+This will make wdctl print a CARDRESET line when the system was
+actually reset by the watchdog while omitting it when it was not
+reset by the watchdog.  At least on drivers which have the
+CARDRESET is missing from info.options problem.  On other drivers
+the CARDRESET line will always be printend, but the actual reported
+value will change.
+
+Upstream: http://github.com/util-linux/util-linux/commit/b1b0259fe42aad1bf0997ce1c03a020ce59e38ab
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2057046
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ sys-utils/wdctl.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/sys-utils/wdctl.c b/sys-utils/wdctl.c
+index 8de5d5a2d..6b9affa0a 100644
+--- a/sys-utils/wdctl.c
++++ b/sys-utils/wdctl.c
+@@ -419,6 +419,13 @@ static int read_watchdog_from_device(struct wd_device *wd)
+ 		ioctl(fd, WDIOC_GETSTATUS, &wd->status);
+ 		ioctl(fd, WDIOC_GETBOOTSTATUS, &wd->bstatus);
+ 
++		/*
++		 * Sometimes supported options like WDIOF_CARDRESET are missing from
++		 * ident.options, add anything set in status/bstatus to ident.options.
++		 */
++		wd->ident.options |= wd->status;
++		wd->ident.options |= wd->bstatus;
++
+ 		if (ioctl(fd, WDIOC_GETTIMEOUT, &wd->timeout) >= 0)
+ 			wd->has_timeout = 1;
+ 		if (ioctl(fd, WDIOC_GETPRETIMEOUT, &wd->pretimeout) >= 0)
+-- 
+2.34.1
+

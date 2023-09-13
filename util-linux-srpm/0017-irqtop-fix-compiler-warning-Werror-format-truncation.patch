@@ -1,0 +1,28 @@
+From de0402358f6d363a57e6fef98c92a9eef5690cdd Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 6 Jun 2022 16:14:30 +0200
+Subject: irqtop: fix compiler warning [-Werror=format-truncation=]
+
+Upstream: http://github.com/util-linux/util-linux/commit/b7865ae165bb43b1626c6928250843cc2c96be57
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2078787
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ sys-utils/irq-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sys-utils/irq-common.c b/sys-utils/irq-common.c
+index 22080b96d..e39ef823c 100644
+--- a/sys-utils/irq-common.c
++++ b/sys-utils/irq-common.c
+@@ -426,7 +426,7 @@ struct libscols_table *get_scols_cpus_table(struct irq_output *out,
+ 	struct libscols_table *table;
+ 	struct libscols_column *cl;
+ 	struct libscols_line *ln;
+-	char colname[sizeof(stringify_value(LONG_MAX))];
++	char colname[sizeof("cpu") + sizeof(stringify_value(LONG_MAX))];
+ 	size_t i;
+ 
+ 	if (prev) {
+-- 
+2.36.1
+

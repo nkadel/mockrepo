@@ -1,0 +1,86 @@
+From 9c7f3317fc66fe971a331dd71e76aff7ae091ab2 Mon Sep 17 00:00:00 2001
+From: Andrey Albershteyn <aalbersh@redhat.com>
+Date: Wed, 27 Apr 2022 14:46:33 +0200
+Subject: libblkid: add FSLASTBLOCK implementation for xfs, ext and btrfs
+
+Implementation of FSLASTBLOCK for most common filesystems. Most of
+the fs store total number of reserved blocks in superblock.
+
+Upstream: http://github.com/util-linux/util-linux/commit/5f995b3f1
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2064810
+Signed-off-by: Andrey Albershteyn <aalbersh@redhat.com>
+---
+ libblkid/src/superblocks/btrfs.c |  5 +++++
+ libblkid/src/superblocks/ext.c   | 10 ++++++++--
+ libblkid/src/superblocks/xfs.c   |  1 +
+ 3 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/libblkid/src/superblocks/btrfs.c b/libblkid/src/superblocks/btrfs.c
+index f0fde700d..9708f2e28 100644
+--- a/libblkid/src/superblocks/btrfs.c
++++ b/libblkid/src/superblocks/btrfs.c
+@@ -76,6 +76,11 @@ static int probe_btrfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 	blkid_probe_set_uuid_as(pr, bfs->dev_item.uuid, "UUID_SUB");
+ 	blkid_probe_set_block_size(pr, le32_to_cpu(bfs->sectorsize));
+ 
++	uint32_t sectorsize_log = 31 -
++		__builtin_clz(le32_to_cpu(bfs->sectorsize));
++	blkid_probe_set_fslastblock(pr,
++			le64_to_cpu(bfs->total_bytes) >> sectorsize_log);
++
+ 	return 0;
+ }
+ 
+diff --git a/libblkid/src/superblocks/ext.c b/libblkid/src/superblocks/ext.c
+index 3870522fa..0b9023734 100644
+--- a/libblkid/src/superblocks/ext.c
++++ b/libblkid/src/superblocks/ext.c
+@@ -164,10 +164,11 @@ static struct ext2_super_block *ext_get_super(
+ static void ext_get_info(blkid_probe pr, int ver, struct ext2_super_block *es)
+ {
+ 	struct blkid_chain *chn = blkid_probe_get_chain(pr);
++	uint32_t s_feature_incompat = le32_to_cpu(es->s_feature_incompat);
+ 
+ 	DBG(PROBE, ul_debug("ext2_sb.compat = %08X:%08X:%08X",
+ 		   le32_to_cpu(es->s_feature_compat),
+-		   le32_to_cpu(es->s_feature_incompat),
++		   s_feature_incompat,
+ 		   le32_to_cpu(es->s_feature_ro_compat)));
+ 
+ 	if (*es->s_volume_name != '\0')
+@@ -179,7 +180,7 @@ static void ext_get_info(blkid_probe pr, int ver, struct ext2_super_block *es)
+ 		blkid_probe_set_uuid_as(pr, es->s_journal_uuid, "EXT_JOURNAL");
+ 
+ 	if (ver != 2 && (chn->flags & BLKID_SUBLKS_SECTYPE) &&
+-	    ((le32_to_cpu(es->s_feature_incompat) & EXT2_FEATURE_INCOMPAT_UNSUPPORTED) == 0))
++	    ((s_feature_incompat & EXT2_FEATURE_INCOMPAT_UNSUPPORTED) == 0))
+ 		blkid_probe_set_value(pr, "SEC_TYPE",
+ 				(unsigned char *) "ext2",
+ 				sizeof("ext2"));
+@@ -190,6 +191,11 @@ static void ext_get_info(blkid_probe pr, int ver, struct ext2_super_block *es)
+ 
+ 	if (le32_to_cpu(es->s_log_block_size) < 32)
+ 		blkid_probe_set_block_size(pr, 1024U << le32_to_cpu(es->s_log_block_size));
++
++	uint64_t fslastblock = le32_to_cpu(es->s_blocks_count) |
++		((s_feature_incompat & EXT4_FEATURE_INCOMPAT_64BIT) ?
++		(uint64_t) le32_to_cpu(es->s_blocks_count_hi) << 32 : 0);
++	blkid_probe_set_fslastblock(pr, fslastblock);
+ }
+ 
+ 
+diff --git a/libblkid/src/superblocks/xfs.c b/libblkid/src/superblocks/xfs.c
+index 444050f55..1f2e92cac 100644
+--- a/libblkid/src/superblocks/xfs.c
++++ b/libblkid/src/superblocks/xfs.c
+@@ -183,6 +183,7 @@ static int probe_xfs(blkid_probe pr, const struct blkid_idmag *mag)
+ 				sizeof(xs->sb_fname));
+ 	blkid_probe_set_uuid(pr, xs->sb_uuid);
+ 	blkid_probe_set_fssize(pr, xfs_fssize(xs));
++	blkid_probe_set_fslastblock(pr, be64_to_cpu(xs->sb_dblocks));
+ 	blkid_probe_set_block_size(pr, be16_to_cpu(xs->sb_sectsize));
+ 	return 0;
+ }
+-- 
+2.36.1
+

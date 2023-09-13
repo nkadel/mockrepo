@@ -10,12 +10,20 @@
 REPOBASE=file://$(PWD)
 #REPOBASE=http://localhost
 
-
 MOCKPKGS+=python-setuptools_scm-srpm
 MOCKPKGS+=python-flit-srpm
 MOCKPKGS+=python-flit-scm-srpm
 MOCKPKGS+=python-pyroute2-srpm
 MOCKPKGS+=python-templated-dictionary-srpm
+
+# Build for Amazon Linux 2023
+MOCKPKGS+=distribution-gpg-keys-srpm
+MOCKPKGS+=gtk2-srpm
+MOCKPKGS+=procenv-srpm
+MOCKPKGS+=util-linux-srpm
+
+# Requires util-linux and distribution-gpg-keys ang gtk2-devel
+MOCKPKGS+=usermode-srpm
 
 # Needs flit-scm
 MOCKPKGS+=python-exceptiongroup-srpm
@@ -109,6 +117,8 @@ mockrepo-7-x86_64.cfg: /etc/mock/centos+epel-7-x86_64.cfg
 mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 	@echo Generating $@ from $?
 	@echo "include('$?')" | tee $@
+	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
+	@echo "config_opts['root'] = 'ansiblerepo-f{{ releasever }}-{{ target_arch }}'" >> $@
 	@echo "config_opts['root'] = 'mockrepo-{{ releasever }}-{{ target_arch }}'" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
@@ -125,6 +135,7 @@ mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 mockrepo-9-x86_64.cfg: /etc/mock/centos-stream+epel-9-x86_64.cfg
 	@echo Generating $@ from $?
 	@echo "include('$?')" | tee $@
+	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
 	@echo "config_opts['root'] = 'mockrepo-{{ releasever }}-{{ target_arch }}'" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
@@ -141,6 +152,8 @@ mockrepo-9-x86_64.cfg: /etc/mock/centos-stream+epel-9-x86_64.cfg
 mockrepo-f38-x86_64.cfg: /etc/mock/fedora-38-x86_64.cfg
 	@echo Generating $@ from $?
 	@echo "include('$?')" | tee $@
+	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
+	@echo "config_opts['root'] = 'ansiblerepo-f{{ releasever }}-{{ target_arch }}'" >> $@
 	@echo "config_opts['root'] = 'ansiblerepo-f{{ releasever }}-{{ target_arch }}'" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@
@@ -157,6 +170,7 @@ mockrepo-f38-x86_64.cfg: /etc/mock/fedora-38-x86_64.cfg
 mockrepo-amz2023-x86_64.cfg: /etc/mock/amazonlinux-2023-x86_64.cfg
 	@echo Generating $@ from $?
 	@echo "include('$?')" | tee $@
+	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
 	@echo "config_opts['root'] = 'ansiblerepo-f{{ releasever }}-{{ target_arch }}'" >> $@
 	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
 	@echo '[mockrepo]' >> $@

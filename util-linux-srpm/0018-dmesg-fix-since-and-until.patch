@@ -1,0 +1,34 @@
+From f45fe0768ac09cb5e05b095afa47a0a71e931f84 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Wed, 20 Apr 2022 14:42:32 +0200
+Subject: dmesg: fix --since and --until
+
+Now --since and --until requires any time field in the output (e.g.
+--ctime,-T), it means "dmesg --since '1 day ago'" doesn't work, but
+"dmesg -T --since '1 day ago'" works as expected.
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2076829
+Upstream: http://github.com/util-linux/util-linux/commit/c9667633f1f6b7a84116f2af067d1d15c72e6382
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ sys-utils/dmesg.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/sys-utils/dmesg.c b/sys-utils/dmesg.c
+index d301951bb..5c580107a 100644
+--- a/sys-utils/dmesg.c
++++ b/sys-utils/dmesg.c
+@@ -1539,7 +1539,9 @@ int main(int argc, char *argv[])
+ 
+ 	if ((is_timefmt(&ctl, RELTIME) ||
+ 	     is_timefmt(&ctl, CTIME)   ||
+-	     is_timefmt(&ctl, ISO8601))) {
++	     is_timefmt(&ctl, ISO8601)) ||
++	     ctl.since ||
++	     ctl.until) {
+ 		if (dmesg_get_boot_time(&ctl.boot_time) != 0)
+ 			ctl.time_fmt = DMESG_TIMEFTM_NONE;
+ 		else
+-- 
+2.36.1
+

@@ -1,0 +1,38 @@
+From c269e116ea4d9e96a5f5801aecf1f624199fa6ec Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Tue, 7 Jun 2022 09:46:54 +0200
+Subject: lslogins: fix free(): invalid pointer
+
+Upstream: http://github.com/util-linux/util-linux/commit/890d4d3f236e2d28db35ea9bc9dc3e5e35db975c
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2094216
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ login-utils/lslogins.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/login-utils/lslogins.c b/login-utils/lslogins.c
+index 1332a9925..ff4386d1b 100644
+--- a/login-utils/lslogins.c
++++ b/login-utils/lslogins.c
+@@ -488,7 +488,7 @@ static int parse_utmpx(const char *path, size_t *nrecords, struct utmpx **record
+ 
+ 	/* optimize allocation according to file size, the realloc() below is
+ 	 * just fallback only */
+-	if (stat(path, &st) == 0 && (size_t) st.st_size > sizeof(struct utmpx)) {
++	if (stat(path, &st) == 0 && (size_t) st.st_size >= sizeof(struct utmpx)) {
+ 		imax = st.st_size / sizeof(struct utmpx);
+ 		ary = xmalloc(imax * sizeof(struct utmpx));
+ 	}
+@@ -1007,6 +1007,9 @@ static void free_ctl(struct lslogins_control *ctl)
+ {
+ 	size_t n = 0;
+ 
++	if (!ctl)
++		return;
++
+ 	free(ctl->wtmp);
+ 	free(ctl->btmp);
+ 
+-- 
+2.36.1
+

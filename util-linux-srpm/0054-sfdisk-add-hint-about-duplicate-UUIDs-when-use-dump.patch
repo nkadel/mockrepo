@@ -1,0 +1,39 @@
+From 2ab525d0cf6f4043e49e070040ec2fb67274ffe8 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Wed, 9 Aug 2023 13:51:03 +0200
+Subject: sfdisk: add hint about duplicate UUIDs when use dump
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2215082
+Upstream: http://github.com/util-linux/util-linux/commit/60c81b3272d03959dfee465f1ecaf40ba3e70cb3
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ disk-utils/sfdisk.8.adoc | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/disk-utils/sfdisk.8.adoc b/disk-utils/sfdisk.8.adoc
+index 091e59120..8a457c969 100644
+--- a/disk-utils/sfdisk.8.adoc
++++ b/disk-utils/sfdisk.8.adoc
+@@ -342,6 +342,8 @@ creates empty GPT partition table. Note that the *--append* disables this featur
+ 
+ It is recommended to save the layout of your devices. *sfdisk* supports two ways.
+ 
++=== Dump in sfdisk compatible format
++
+ Use the *--dump* option to save a description of the device layout to a text file. The dump format is suitable for later *sfdisk* input. For example:
+ 
+ ____
+@@ -354,6 +356,10 @@ ____
+ *sfdisk /dev/sda < sda.dump*
+ ____
+ 
++Note that sfdisk completely restores partition types and partition UUIDs. This could potentially become problematic if you duplicate the same layout to different disks, as it may result in duplicate UUIDs within your system.
++
++=== Full binary backup
++
+ If you want to do a full (binary) backup of all sectors where the partition table is stored, then use the *--backup* option. It writes the sectors to _~/sfdisk-<device>-<offset>.bak_ files. The default name of the backup file can be changed with the *--backup-file* option. The backup files contain only raw data from the _device_. Note that the same concept of backup files is used by *wipefs*(8). For example:
+ 
+ ____
+-- 
+2.40.1
+

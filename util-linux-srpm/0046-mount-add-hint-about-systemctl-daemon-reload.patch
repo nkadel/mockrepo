@@ -1,0 +1,86 @@
+From 5d150964f0b2fbcaa9f9d11809eede9255159a5d Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 13 Dec 2021 13:22:56 +0100
+Subject: mount: add hint about systemctl daemon-reload
+
+This commit implements an extra hint for systemd based distros to
+inform users that units currently used by systemd are older than
+fstab.  This situation is usually unwanted, and 'systemctl
+daemon-reload' is recommended.
+
+The message is printed only on terminal to avoid extra messages in
+logs, etc.
+
+Addresses: https://github.com/systemd/systemd/pull/20476
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2180414
+Upstream: http://github.com/util-linux/util-linux/commit/1db0715169954a8f3898f7ca9d3902cd6c27084d
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ include/pathnames.h |  2 ++
+ sys-utils/mount.c   | 23 +++++++++++++++++++++++
+ 2 files changed, 25 insertions(+)
+
+diff --git a/include/pathnames.h b/include/pathnames.h
+index 7e7d9053f..8c3c36477 100644
+--- a/include/pathnames.h
++++ b/include/pathnames.h
+@@ -82,6 +82,8 @@
+ #define _PATH_NUMLOCK_ON	_PATH_RUNSTATEDIR "/numlock-on"
+ #define _PATH_LOGINDEFS		"/etc/login.defs"
+ 
++#define _PATH_SD_UNITSLOAD	_PATH_RUNSTATEDIR "/systemd/systemd-units-load"
++
+ /* misc paths */
+ #define _PATH_WORDS             "/usr/share/dict/words"
+ #define _PATH_WORDS_ALT         "/usr/share/dict/web2"
+diff --git a/sys-utils/mount.c b/sys-utils/mount.c
+index ce1de16dc..90a0331c3 100644
+--- a/sys-utils/mount.c
++++ b/sys-utils/mount.c
+@@ -38,6 +38,7 @@
+ #include "strutils.h"
+ #include "closestream.h"
+ #include "canonicalize.h"
++#include "pathnames.h"
+ 
+ #define XALLOC_EXIT_CODE MNT_EX_SYSERR
+ #include "xalloc.h"
+@@ -336,6 +337,25 @@ static void selinux_warning(struct libmnt_context *cxt, const char *tgt)
+ # define selinux_warning(_x, _y)
+ #endif
+ 
++static void systemd_hint(void)
++{
++	static int fstab_check_done = 0;
++
++	if (fstab_check_done == 0) {
++		struct stat a, b;
++
++		if (isatty(STDERR_FILENO) &&
++		    stat(_PATH_SD_UNITSLOAD, &a) == 0 &&
++		    stat(_PATH_MNTTAB, &b) == 0 &&
++		    cmp_stat_mtime(&a, &b, <))
++			printf(_(
++	"mount: (hint) your fstab has been modified, but systemd still uses\n"
++	"       the old version; use 'systemctl daemon-reload' to reload.\n"));
++
++		fstab_check_done = 1;
++	}
++}
++
+ /*
+  * Returns exit status (MNT_EX_*) and/or prints error message.
+  */
+@@ -359,6 +379,9 @@ static int mk_exit_code(struct libmnt_context *cxt, int rc)
+ 	if (rc == MNT_EX_SUCCESS && mnt_context_get_status(cxt) == 1) {
+ 		selinux_warning(cxt, tgt);
+ 	}
++
++	systemd_hint();
++
+ 	return rc;
+ }
+ 
+-- 
+2.39.2
+

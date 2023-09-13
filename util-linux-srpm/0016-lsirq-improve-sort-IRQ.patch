@@ -1,0 +1,31 @@
+From 338d5f2876c54e5d811100ba816d3a6dec00ab11 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Fri, 29 Apr 2022 10:11:49 +0200
+Subject: lsirq: improve --sort IRQ
+
+IRQ column mixes numbers and text, it seems better to use strverscmp()
+rather than classic strcmp().
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2078787
+Upstream: http://github.com/util-linux/util-linux/commit/d382861c0815ff241fb2844a2a896f0fb1c7b73e
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ sys-utils/irq-common.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sys-utils/irq-common.c b/sys-utils/irq-common.c
+index 350675394..22080b96d 100644
+--- a/sys-utils/irq-common.c
++++ b/sys-utils/irq-common.c
+@@ -371,7 +371,7 @@ static inline int cmp_delta(const struct irq_info *a,
+ static inline int cmp_interrupts(const struct irq_info *a,
+ 			   const struct irq_info *b)
+ {
+-	return (strcmp(a->irq, b->irq) > 0) ? 1 : 0;
++	return (strverscmp(a->irq, b->irq) > 0) ? 1 : 0;
+ }
+ 
+ static void sort_result(struct irq_output *out,
+-- 
+2.36.1
+

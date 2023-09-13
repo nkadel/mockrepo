@@ -1,0 +1,28 @@
+From da3add097b70160cd2c6bab0a4acb699df07ebe8 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Thu, 17 Mar 2022 10:48:33 +0100
+Subject: cfdisk: don't use NULL in printf [coverity scan]
+
+Upstream: http://github.com/util-linux/util-linux/commit/30cc5f5751698cccb625193f715f1a606a7f91b4
+Addresses: https://bugzilla.redhat.com/bugzilla/show_bug.cgi?id=2109459
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ disk-utils/cfdisk.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/disk-utils/cfdisk.c b/disk-utils/cfdisk.c
+index c1b28889f..36eb3f8c6 100644
+--- a/disk-utils/cfdisk.c
++++ b/disk-utils/cfdisk.c
+@@ -2080,7 +2080,7 @@ done:
+ 	}
+ 	free(cm);
+ 	DBG(UI, ul_debug("get parrtype done [type=%s] ", t ?
+-				fdisk_parttype_get_name(t) : NULL));
++				fdisk_parttype_get_name(t) : ""));
+ 	return t;
+ }
+ 
+-- 
+2.36.1
+

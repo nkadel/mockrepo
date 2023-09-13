@@ -1,0 +1,28 @@
+From 825f9a8eb7800c572d4ded17dd202249312e3240 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 4 Oct 2021 11:14:01 +0200
+Subject: fstrim: fix typo
+
+Addresses: https://github.com/karelzak/util-linux/issues/1463
+Signed-off-by: Karel Zak <kzak@redhat.com>
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2165981
+---
+ sys-utils/fstrim.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/sys-utils/fstrim.c b/sys-utils/fstrim.c
+index ea787f42c..88397f0ec 100644
+--- a/sys-utils/fstrim.c
++++ b/sys-utils/fstrim.c
+@@ -226,7 +226,7 @@ static int is_unwanted_fs(struct libmnt_fs *fs, const char *tgt)
+ 		return 1;
+ 
+ 	fd = open(tgt, O_PATH);
+-	if (!fd)
++	if (fd < 0)
+ 		return 1;
+ 	rc = fstatfs(fd, &vfs) != 0 || vfs.f_type == STATFS_AUTOFS_MAGIC;
+ 	close(fd);
+-- 
+2.39.1
+

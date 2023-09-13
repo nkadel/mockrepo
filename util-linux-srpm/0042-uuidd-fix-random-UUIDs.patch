@@ -1,0 +1,34 @@
+From cae4f3f433e4a308f70103e166c6afad30b59ca7 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Mon, 10 Oct 2022 09:37:51 +0200
+Subject: uuidd: fix random UUIDs
+
+Commit f27876f introduces copy & past bug and replaces
+__uuid_generate_random() with __uuid_generate_time().
+
+Fixes: https://github.com/util-linux/util-linux/issues/1837
+Signed-off-by: Karel Zak <kzak@redhat.com>
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2133385
+Upstream: http://github.com/util-linux/util-linux/commit/b408a291d39e9b637f6104eb4e1f8e60816421e2
+---
+ misc-utils/uuidd.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/misc-utils/uuidd.c b/misc-utils/uuidd.c
+index b859ccb8c..489d6b79a 100644
+--- a/misc-utils/uuidd.c
++++ b/misc-utils/uuidd.c
+@@ -519,9 +519,7 @@ static void server_loop(const char *socket_path, const char *pidfile_path,
+ 			break;
+ 		case UUIDD_OP_RANDOM_UUID:
+ 			num = 1;
+-			ret = __uuid_generate_time_cont(uu, &num, uuidd_cxt->cont_clock_offset);
+-			if (ret < 0 && !uuidd_cxt->quiet)
+-				warnx(_("failed to open/lock clock counter"));
++			__uuid_generate_random(uu, &num);
+ 			if (uuidd_cxt->debug) {
+ 				uuid_unparse(uu, str);
+ 				fprintf(stderr, _("Generated random UUID: %s\n"), str);
+-- 
+2.39.1
+

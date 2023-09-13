@@ -1,0 +1,32 @@
+From 5300d69be2919d0a50968377d23807831fdf3f71 Mon Sep 17 00:00:00 2001
+From: Andrey Albershteyn <aalbersh@redhat.com>
+Date: Fri, 27 May 2022 12:56:27 +0200
+Subject: libblkid: update documentation of BLOCK_SIZE tag
+
+The name BLOCK_SIZE is unfortunate. This tag doesn't represent
+commonly used file system block size but minimal block size
+accessible by file system (sector size).
+
+Upstream: http://github.com/util-linux/util-linux/commit/895f0b609
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2064810
+Signed-off-by: Andrey Albershteyn <aalbersh@redhat.com>
+---
+ libblkid/src/superblocks/superblocks.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/libblkid/src/superblocks/superblocks.c b/libblkid/src/superblocks/superblocks.c
+index 9cfa991fc..9c32bc9d5 100644
+--- a/libblkid/src/superblocks/superblocks.c
++++ b/libblkid/src/superblocks/superblocks.c
+@@ -80,7 +80,7 @@
+  *
+  * @BOOT_SYSTEM_ID: ISO9660 boot system identifier
+  *
+- * @BLOCK_SIZE: block size
++ * @BLOCK_SIZE: minimal block size accessible by file system
+  */
+ 
+ static int superblocks_probe(blkid_probe pr, struct blkid_chain *chn);
+-- 
+2.36.1
+

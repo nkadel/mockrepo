@@ -1,0 +1,94 @@
+From 96a699563b65b6a9204f2c3184faf1366155a614 Mon Sep 17 00:00:00 2001
+From: Andrey Albershteyn <aalbersh@redhat.com>
+Date: Wed, 27 Apr 2022 17:33:33 +0200
+Subject: blkid: add tests for FSLASTBLOCK tag
+
+Upstream: http://github.com/util-linux/util-linux/commit/800ed56f4
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2064810
+Signed-off-by: Andrey Albershteyn <aalbersh@redhat.com>
+---
+ misc-utils/blkid.c                    | 2 +-
+ tests/expected/blkid/low-probe-btrfs  | 1 +
+ tests/expected/blkid/low-probe-ext2   | 1 +
+ tests/expected/blkid/low-probe-ext3   | 1 +
+ tests/expected/blkid/low-probe-jbd    | 1 +
+ tests/expected/blkid/low-probe-xfs    | 1 +
+ tests/expected/blkid/low-probe-xfs-v5 | 1 +
+ 7 files changed, 7 insertions(+), 1 deletion(-)
+
+diff --git a/misc-utils/blkid.c b/misc-utils/blkid.c
+index 4f456be52..f2b190ce3 100644
+--- a/misc-utils/blkid.c
++++ b/misc-utils/blkid.c
+@@ -893,7 +893,7 @@ int main(int argc, char **argv)
+ 				BLKID_SUBLKS_LABEL | BLKID_SUBLKS_UUID |
+ 				BLKID_SUBLKS_TYPE | BLKID_SUBLKS_SECTYPE |
+ 				BLKID_SUBLKS_USAGE | BLKID_SUBLKS_VERSION |
+-				BLKID_SUBLKS_FSSIZE);
++				BLKID_SUBLKS_FSSIZE | BLKID_SUBLKS_FSLASTBLOCK);
+ 
+ 
+ 			if (fltr_usage &&
+diff --git a/tests/expected/blkid/low-probe-btrfs b/tests/expected/blkid/low-probe-btrfs
+index 509fac378..48649389a 100644
+--- a/tests/expected/blkid/low-probe-btrfs
++++ b/tests/expected/blkid/low-probe-btrfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=4096
++ID_FS_FSLASTBLOCK=29440
+ ID_FS_TYPE=btrfs
+ ID_FS_USAGE=filesystem
+ ID_FS_UUID=d4a78b72-55e4-4811-86a6-09af936d43f9
+diff --git a/tests/expected/blkid/low-probe-ext2 b/tests/expected/blkid/low-probe-ext2
+index 087da97a4..e236c6e8a 100644
+--- a/tests/expected/blkid/low-probe-ext2
++++ b/tests/expected/blkid/low-probe-ext2
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSLASTBLOCK=100
+ ID_FS_LABEL=test-ext2
+ ID_FS_LABEL_ENC=test-ext2
+ ID_FS_TYPE=ext2
+diff --git a/tests/expected/blkid/low-probe-ext3 b/tests/expected/blkid/low-probe-ext3
+index 8684884c1..164fefb7b 100644
+--- a/tests/expected/blkid/low-probe-ext3
++++ b/tests/expected/blkid/low-probe-ext3
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSLASTBLOCK=2048
+ ID_FS_LABEL=test-ext3
+ ID_FS_LABEL_ENC=test-ext3
+ ID_FS_SEC_TYPE=ext2
+diff --git a/tests/expected/blkid/low-probe-jbd b/tests/expected/blkid/low-probe-jbd
+index c9f9f6b79..f5462a2a3 100644
+--- a/tests/expected/blkid/low-probe-jbd
++++ b/tests/expected/blkid/low-probe-jbd
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=1024
++ID_FS_FSLASTBLOCK=1024
+ ID_FS_LOGUUID=0d7a07df-7b06-4829-bce7-3b9c3ece570c
+ ID_FS_TYPE=jbd
+ ID_FS_USAGE=other
+diff --git a/tests/expected/blkid/low-probe-xfs b/tests/expected/blkid/low-probe-xfs
+index a91e92bcc..be9c4194a 100644
+--- a/tests/expected/blkid/low-probe-xfs
++++ b/tests/expected/blkid/low-probe-xfs
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSLASTBLOCK=4096
+ ID_FS_FSSIZE=11862016
+ ID_FS_LABEL=test-xfs
+ ID_FS_LABEL_ENC=test-xfs
+diff --git a/tests/expected/blkid/low-probe-xfs-v5 b/tests/expected/blkid/low-probe-xfs-v5
+index 129b41f26..fd2cba933 100644
+--- a/tests/expected/blkid/low-probe-xfs-v5
++++ b/tests/expected/blkid/low-probe-xfs-v5
+@@ -1,4 +1,5 @@
+ ID_FS_BLOCK_SIZE=512
++ID_FS_FSLASTBLOCK=5120
+ ID_FS_FSSIZE=17469440
+ ID_FS_LABEL=test-xfs-v5
+ ID_FS_LABEL_ENC=test-xfs-v5
+-- 
+2.36.1
+

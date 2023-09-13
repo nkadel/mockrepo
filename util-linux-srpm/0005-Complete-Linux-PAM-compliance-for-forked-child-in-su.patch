@@ -1,0 +1,52 @@
+From 41ae35c39241575c63db204c786cb1423c202815 Mon Sep 17 00:00:00 2001
+From: "Andrew G. Morgan" <morgan@kernel.org>
+Date: Sat, 27 Nov 2021 21:00:22 -0800
+Subject: Complete Linux-PAM compliance for forked child in su and login.
+
+As documented here:
+
+http://www.linux-pam.org/Linux-PAM-html/adg-interface-by-app-expected.html#adg-pam_end
+
+The child that is about to exec*() the user shell is supposed to pam_end()
+with PAM_DATA_SILENT. This gives the modules a last chance to do a minor
+cleanup of the module state before the user's shell is launched.
+
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2037212
+Upstream: http://github.com/util-linux/util-linux/commit/4660286e9cdff6d95b49295674b96f83af10ea36
+Signed-off-by: Andrew G. Morgan <morgan@kernel.org>
+---
+ login-utils/login.c     | 3 +++
+ login-utils/su-common.c | 3 +++
+ 2 files changed, 6 insertions(+)
+
+diff --git a/login-utils/login.c b/login-utils/login.c
+index 3657f04cd..c62e91e94 100644
+--- a/login-utils/login.c
++++ b/login-utils/login.c
+@@ -1521,6 +1521,9 @@ int main(int argc, char **argv)
+ 
+ 	child_argv[child_argc++] = NULL;
+ 
++	/* http://www.linux-pam.org/Linux-PAM-html/adg-interface-by-app-expected.html#adg-pam_end */
++	(void) pam_end(cxt.pamh, PAM_SUCCESS|PAM_DATA_SILENT);
++
+ 	execvp(child_argv[0], child_argv + 1);
+ 
+ 	if (!strcmp(child_argv[0], "/bin/sh"))
+diff --git a/login-utils/su-common.c b/login-utils/su-common.c
+index afd0ea8ad..7d4826bbc 100644
+--- a/login-utils/su-common.c
++++ b/login-utils/su-common.c
+@@ -1231,6 +1231,9 @@ int su_main(int argc, char **argv, int mode)
+ 	if (su->simulate_login && chdir(su->pwd->pw_dir) != 0)
+ 		warn(_("warning: cannot change directory to %s"), su->pwd->pw_dir);
+ 
++	/* http://www.linux-pam.org/Linux-PAM-html/adg-interface-by-app-expected.html#adg-pam_end */
++	(void) pam_end(su->pamh, PAM_SUCCESS|PAM_DATA_SILENT);
++
+ 	if (shell)
+ 		run_shell(su, shell, command, argv + optind, max(0, argc - optind));
+ 
+-- 
+2.34.1
+

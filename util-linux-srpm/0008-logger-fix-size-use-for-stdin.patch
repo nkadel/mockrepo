@@ -1,0 +1,61 @@
+From 199c328686aac174b0535619e5cea8450016e827 Mon Sep 17 00:00:00 2001
+From: Karel Zak <kzak@redhat.com>
+Date: Thu, 21 Oct 2021 18:47:40 +0200
+Subject: logger: fix --size use for stdin
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The stdin version counts log header into the message size, but
+for example when it reads message from argv[] it counts only message
+itself.
+
+ $ logger --stderr  --size 3 "abcd"
+ <13>Oct 21 18:48:29 kzak: abc
+
+ $ echo "abcd" | logger --stderr  --size 3
+ logger: cannot allocate 18446744073709551597 bytes: Cannot allocate memory
+
+Upstream: http://github.com/util-linux/util-linux/commit/58e4ee082bca100034791a4a74481f263bb30a25
+Addresses: https://bugzilla.redhat.com/show_bug.cgi?id=2033622
+Signed-off-by: Karel Zak <kzak@redhat.com>
+---
+ misc-utils/logger.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/misc-utils/logger.c b/misc-utils/logger.c
+index 5b122de79..43284caeb 100644
+--- a/misc-utils/logger.c
++++ b/misc-utils/logger.c
+@@ -976,8 +976,7 @@ static void logger_stdin(struct logger_ctl *ctl)
+ 	int has_header = 1;
+ 	int default_priority = ctl->pri;
+ 	int last_pri = default_priority;
+-	size_t max_usrmsg_size = ctl->max_message_size - strlen(ctl->hdr);
+-	char *const buf = xmalloc(max_usrmsg_size + 2 + 2);
++	char *buf = xmalloc(ctl->max_message_size + 2 + 2);
+ 	int pri;
+ 	int c;
+ 	size_t i;
+@@ -1004,16 +1003,14 @@ static void logger_stdin(struct logger_ctl *ctl)
+ 				ctl->pri = default_priority;
+ 
+ 			if (ctl->pri != last_pri) {
+-				has_header = 0;
+-				max_usrmsg_size =
+-				    ctl->max_message_size - strlen(ctl->hdr);
++				generate_syslog_header(ctl);
+ 				last_pri = ctl->pri;
+ 			}
+ 			if (c != EOF && c != '\n')
+ 				c = getchar();
+ 		}
+ 
+-		while (c != EOF && c != '\n' && i < max_usrmsg_size) {
++		while (c != EOF && c != '\n' && i < ctl->max_message_size) {
+ 			buf[i++] = c;
+ 			c = getchar();
+ 		}
+-- 
+2.34.1
+
