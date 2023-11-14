@@ -9,7 +9,7 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 5.0
+Version: 5.2
 Release: 0.1%{?dist}
 License: GPL-2.0-or-later
 Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}%{?versionsuffix}.zip
@@ -64,7 +64,10 @@ Requires: yum
 Requires: dnf-plugins-core
 Recommends: btrfs-progs
 Recommends: dnf-utils
+# Amazon Linux 2023 lacks qemu
+%if ! 0%{?amzn2023}
 Requires: qemu-user-static
+%endif
 Requires: procenv
 Requires: podman
 
