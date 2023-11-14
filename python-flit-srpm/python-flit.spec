@@ -19,28 +19,28 @@ Source0:	https://github.com/takluyver/flit/archive/%{version}/%{srcname}-%{versi
 Source1:	https://pypi.org/pypi?%3Aaction=list_classifiers#/classifiers.lst
 
 BuildArch:	noarch
-BuildRequires:	python3-devel
+BuildRequires:	python%{python3_pkgversion}-devel
 BuildRequires:  pyproject-rpm-macros >= 0-40
-BuildRequires:	python3-pip
+BuildRequires:	python%{python3_pkgversion}-pip
 
 # Runtime deps needed to build self
-BuildRequires:	python3-tomli
+BuildRequires:	python%{python3_pkgversion}-tomli
 
 %if %{with tests}
 # Runtime deps, others
-BuildRequires:	python3-requests
-BuildRequires:	python3-docutils
-BuildRequires:	python3-pygments
-BuildRequires:	python3-tomli-w
+BuildRequires:	python%{python3_pkgversion}-requests
+BuildRequires:	python%{python3_pkgversion}-docutils
+BuildRequires:	python%{python3_pkgversion}-pygments
+BuildRequires:	python%{python3_pkgversion}-tomli-w
 
 # Test deps
 BuildRequires:	/usr/bin/python
-BuildRequires:	python3-pytest
-BuildRequires:	python3-responses
+BuildRequires:	python%{python3_pkgversion}-pytest
+BuildRequires:	python%{python3_pkgversion}-responses
 
 # Test deps that require flit to build:
-BuildRequires:	python3-testpath
-BuildRequires:	python3-requests-download
+BuildRequires:	python%{python3_pkgversion}-testpath
+BuildRequires:	python%{python3_pkgversion}-requests-download
 %endif
 
 %global _description %{expand:
@@ -59,10 +59,10 @@ so long as they can be imported on Python 3.}
 %description %_description
 
 
-%package -n python3-%{srcname}
+%package -n python%{python3_pkgversion}-%{srcname}
 Summary:	%{summary}
-%{?python_provide:%python_provide python3-%{srcname}}
-Requires:	python3-%{srcname}-core = %{version}-%{release}
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{srcname}}
+Requires:	python%{python3_pkgversion}-%{srcname}-core = %{version}-%{release}
 
 # https://pypi.python.org/pypi/tornado
 # ./flit/log.py unknown version
@@ -70,20 +70,20 @@ Provides:	bundled(python3dist(tornado))
 
 # soft dependency: (WARNING) Cannot analyze code. Pygments package not found.
 %if 0%{?el} > 7 || 0%{?fedora} > 0
-Recommends:	python3-pygments
+Recommends:	python%{python3_pkgversion}-pygments
 else
-Requires:	python3-pygments
+Requires:	python%{python3_pkgversion}-pygments
 %endif
 
-%description -n python3-%{srcname} %_description
+%description -n python%{python3_pkgversion}-%{srcname} %_description
 
 
-%package -n python3-%{srcname}-core
+%package -n python%{python3_pkgversion}-%{srcname}-core
 Summary:	PEP 517 build backend for packages using Flit
-%{?python_provide:%python_provide python3-%{srcname}-core}
-Conflicts:	python3-%{srcname} < 2.1.0-2
+%{?python_provide:%python_provide python%{python3_pkgversion}-%{srcname}-core}
+Conflicts:	python%{python3_pkgversion}-%{srcname} < 2.1.0-2
 
-%description -n python3-%{srcname}-core
+%description -n python%{python3_pkgversion}-%{srcname}-core
 This provides a PEP 517 build backend for packages using Flit.
 The only public interface is the API specified by PEP 517,
 at flit_core.buildapi.
@@ -124,7 +124,7 @@ export XDG_CACHE_HOME=$PWD/fake_cache
 %endif
 
 
-%files -n python3-%{srcname}
+%files -n python%{python3_pkgversion}-%{srcname}
 %license LICENSE
 %doc README.rst
 %{python3_sitelib}/flit-*.dist-info/
@@ -132,7 +132,7 @@ export XDG_CACHE_HOME=$PWD/fake_cache
 %{_bindir}/flit
 
 
-%files -n python3-%{srcname}-core
+%files -n python%{python3_pkgversion}-%{srcname}-core
 %license LICENSE
 %doc flit_core/README.rst
 %{python3_sitelib}/flit_core-*.dist-info/
