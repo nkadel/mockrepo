@@ -24,7 +24,7 @@ Source0:        %{pypi_source flit_scm}
 BuildArch:      noarch
 
 # Manually added
-Provides:  python3dist(flit-scm) = %{version}-%{release}
+%{?python_provide:%python_provide python%{python3_pkgversion}-flit-scm}
 
 %description %_description
 
