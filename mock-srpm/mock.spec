@@ -4,15 +4,24 @@
 # mock group id allocate for Fedora
 %global mockgid 135
 
-# Because tags include dangling -1, for no valid reasion
+%global __python %{__python3}
+%global python_sitelib %{python3_sitelib}
+
 %global versionsuffix -1
 
 Summary: Builds packages inside chroots
 Name: mock
 Version: 5.2
+#Release: 1%%{?dist}
 Release: 0.1%{?dist}
 License: GPL-2.0-or-later
-Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}%{?versionsuffix}.zip
+# Source is created by
+# git clone https://github.com/rpm-software-management/mock.git
+# cd mock
+# git reset --hard %%{name}-%%{version}
+# tito build --tgz
+Source: https://github.com/rpm-software-management/mock/archive/refs/tags/%{name}-%{version}%{?versionsuffix}.zip
+
 URL: https://github.com/rpm-software-management/mock/
 BuildArch: noarch
 Requires: tar
@@ -33,7 +42,7 @@ Requires: mock-configs
 Requires: %{name}-filesystem
 %if 0%{?fedora} || 0%{?rhel} >= 8
 # This is still preferred package providing 'mock-configs'
-Requires: mock-core-configs
+Suggests: mock-core-configs
 %endif
 
 Requires: systemd
@@ -42,34 +51,43 @@ Requires: systemd-container
 %endif
 Requires: coreutils
 %if 0%{?fedora}
-Requires: iproute
+Suggests: iproute
 %endif
 %if 0%{?mageia}
-Requires: iproute2
+Suggests: iproute2
 %endif
 BuildRequires: bash-completion
-BuildRequires: python%{python3_pkgversion}
-BuildRequires: python%{python3_pkgversion}-devel
-%if %{with lint}
-BuildRequires: python%{python3_pkgversion}-pylint
-%endif
 Requires: python%{python3_pkgversion}-distro
 Requires: python%{python3_pkgversion}-jinja2
 Requires: python%{python3_pkgversion}-requests
 Requires: python%{python3_pkgversion}-rpm
 Requires: python%{python3_pkgversion}-pyroute2
 Requires: python%{python3_pkgversion}-templated-dictionary
-Requires: dnf
-Requires: yum
-Requires: dnf-plugins-core
-Recommends: btrfs-progs
-Recommends: dnf-utils
-# Amazon Linux 2023 lacks qemu
-%if ! 0%{?amzn2023}
-Requires: qemu-user-static
+Requires: python%{python3_pkgversion}-backoff
+BuildRequires: python%{python3_pkgversion}-backoff
+BuildRequires: python%{python3_pkgversion}-devel
+%if %{with lint}
+BuildRequires: python%{python3_pkgversion}-pylint
 %endif
-Requires: procenv
-Requires: podman
+
+%if 0%{?fedora} >= 38
+# DNF5 stack
+Recommends: dnf5
+Recommends: dnf5-plugins
+%endif
+
+# DNF4 stack
+Recommends: python3-dnf
+Recommends: python3-dnf-plugins-core
+
+# YUM stack, dnf-utils replace yum-utils
+Recommends: yum
+Recommends: dnf-utils
+
+Recommends: btrfs-progs
+Suggests: qemu-user-static
+Suggests: procenv
+Recommends: podman
 
 %if %{with tests}
 BuildRequires: python%{python3_pkgversion}-distro
@@ -89,6 +107,7 @@ BuildRequires: perl
 Requires: util-linux
 Requires: coreutils
 Requires: procps-ng
+Requires: shadow-utils
 
 
 %description
@@ -128,7 +147,7 @@ Filesystem layout and group for Mock.
 %setup -q -n %{name}-%{name}-%{version}%{?versionsuffix}
 cd %{name}
 for file in py/mock.py py/mock-parse-buildlog.py; do
-  sed -i 1"s|#!/usr/bin/python3 |#!%{__python3} |" $file
+  sed -i 1"s|#!/usr/bin/python3 |#!%{__python} |" $file
 done
 
 %build
@@ -136,16 +155,16 @@ cd %{name}
 for i in py/mockbuild/constants.py py/mock-parse-buildlog.py; do
     perl -p -i -e 's|^VERSION\s*=.*|VERSION="%{version}"|' $i
     perl -p -i -e 's|^SYSCONFDIR\s*=.*|SYSCONFDIR="%{_sysconfdir}"|' $i
-    perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python3_sitelib}"|' $i
-    perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python3_sitelib}/mockbuild"|' $i
+    perl -p -i -e 's|^PYTHONDIR\s*=.*|PYTHONDIR="%{python_sitelib}"|' $i
+    perl -p -i -e 's|^PKGPYTHONDIR\s*=.*|PKGPYTHONDIR="%{python_sitelib}/mockbuild"|' $i
 done
 for i in docs/mock.1 docs/mock-parse-buildlog.1; do
     perl -p -i -e 's|\@VERSION\@|%{version}"|' $i
 done
 
 %install
-#base filesystem
 cd %{name}
+#base filesystem
 mkdir -p %{buildroot}%{_sysconfdir}/mock/eol/templates
 mkdir -p %{buildroot}%{_sysconfdir}/mock/templates
 
@@ -173,8 +192,8 @@ ln -s mock %{buildroot}%{_datadir}/bash-completion/completions/mock-parse-buildl
 install -d %{buildroot}%{_sysconfdir}/pki/mock
 cp -a etc/pki/* %{buildroot}%{_sysconfdir}/pki/mock/
 
-install -d %{buildroot}%{python3_sitelib}/
-cp -a py/mockbuild %{buildroot}%{python3_sitelib}/
+install -d %{buildroot}%{python_sitelib}/
+cp -a py/mockbuild %{buildroot}%{python_sitelib}/
 
 install -d %{buildroot}%{_mandir}/man1
 cp -a docs/mock.1 docs/mock-parse-buildlog.1 %{buildroot}%{_mandir}/man1/
@@ -222,11 +241,11 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %{_libexecdir}/mock
 
 # python stuff
-%{python3_sitelib}/*
-%exclude %{python3_sitelib}/mockbuild/scm.*
-%exclude %{python3_sitelib}/mockbuild/__pycache__/scm.*
-%exclude %{python3_sitelib}/mockbuild/plugins/lvm_root.*
-%exclude %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*
+%{python_sitelib}/*
+%exclude %{python_sitelib}/mockbuild/scm.*
+%exclude %{python_sitelib}/mockbuild/__pycache__/scm.*
+%exclude %{python_sitelib}/mockbuild/plugins/lvm_root.*
+%exclude %{python_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*
 
 # config files
 %config(noreplace) %{_sysconfdir}/%{name}/*.ini
@@ -248,11 +267,11 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir %{_localstatedir}/lib/mock
 
 %files scm
-%{python3_sitelib}/mockbuild/scm.py*
+%{python_sitelib}/mockbuild/scm.py*
 %{python3_sitelib}/mockbuild/__pycache__/scm.*.py*
 
 %files lvm
-%{python3_sitelib}/mockbuild/plugins/lvm_root.*
+%{python_sitelib}/mockbuild/plugins/lvm_root.*
 %{python3_sitelib}/mockbuild/plugins/__pycache__/lvm_root.*.py*
 
 %files filesystem
@@ -264,12 +283,42 @@ pylint-3 py/mockbuild/ py/*.py py/mockbuild/plugins/* || :
 %dir  %{_datadir}/cheat
 
 %changelog
-* Thu Jan 5 2023 Nico Kadel-Garcia <nkadel@gmail.com> 3.5-0.1
-- Update to 3.5
+* Wed Sep 27 2023 Pavel Raiskup <praiskup@redhat.com> 5.2-1
+- Fix '~' user source expansion for --copyout
+- Compatibility fix with EL 8
+- Log out the command-line arguments
+- Make sure that 'state' is always finished
+- README.md: cleaning up
+- Post-release administrivia
 
-* Fri Dec 30 2022 Nico Kadel-Garcia
-- Use valid Source URL from github.com
-- Enter %%{name} supdirectory for compilation
+* Mon Sep 18 2023 Pavel Raiskup <praiskup@redhat.com> 5.1.1-1
+- keep re-creating the root directory for each build
+
+* Fri Sep 15 2023 Pavel Raiskup <praiskup@redhat.com> 5.1-1
+- new upstream release, per https://rpm-software-management.github.io/mock/Release-Notes-5.1
+
+* Wed Aug 09 2023 Pavel Raiskup <praiskup@redhat.com> 5.0-1
+- new upstream release, per https://rpm-software-management.github.io/mock/Release-Notes-5.0
+
+* Fri Jun 02 2023 Pavel Raiskup <praiskup@redhat.com> 4.1-1
+- bootstrap: fix certificate copying into the bootstrap chroot
+- don't strictly require any package manager
+- config: properly configure package manager commands
+- unify the fallback-detection for host/bootstrap/bootstrap-image
+- bind_mount plug-in: pre-create dest directory before bind-mounting a file
+- bootstrap: use DNF5 in package manager fallbacks
+- fix --dnf-cmd traceback with the new package_manager logic
+
+* Mon May 22 2023 Pavel Raiskup <praiskup@redhat.com> 4.0-1
+- cleanup the bootstrap image logic so it works if Mock is run in container
+- rebuild: kill orphans when mounted
+- bootstrap: delay the buildroot-in-bootstrap recursive mount
+- use shlex instead of pipes
+- fix bootstrap_* prefixed config_opts options
+- manual page: fix the "how to fill an issue" info
+- support for DNF5 added
+- use -N instead of -n for useradd (msuchy@redhat.com)
+- mock: don't use distutils copy_tree()
 
 * Thu Dec 01 2022 Pavel Raiskup <praiskup@redhat.com> 3.5-1
 - check for qemu-user-static raises InvalidArchitecture()
