@@ -8,7 +8,7 @@ Summary:        A way to represent multiple things going wrong at the same time,
 Group:          Development/Python
 License:        MIT
 URL:            https://github.com/python-trio/exceptiongroup
-Source0:        https://files.pythonhosted.org/packages/source/e/%{pypi_name}/%{pypi_name}-%{version}.tar.gz
+Source0:        %{pypi_source}
 BuildArch:      noarch
 BuildRequires:  pyproject-rpm-macros
 BuildRequires:  python3dist(pip)

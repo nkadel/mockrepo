@@ -12,6 +12,8 @@ Source0:        %{pypi_source setuptools_scm}
 BuildArch:      noarch
 
 BuildRequires:  python%{python3_pkgversion}-devel
+BuildRequires:  python%{python3_pkgversion}-tomli
+BuildRequires:  python%{python3_pkgversion}-exceptiongroup
 BuildRequires:  pyproject-rpm-macros
 %if %{with tests}
 BuildRequires:  git-core
