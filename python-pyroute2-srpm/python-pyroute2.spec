@@ -16,7 +16,7 @@ License: GPLv2+
 URL: https://github.com/svinota/%{srcname}
 
 BuildArch: noarch
-Source: https://pypi.io/packages/source/p/pyroute2/pyroute2-%{version}.tar.gz
+Source: %{pypi_source}
 
 
 %description
