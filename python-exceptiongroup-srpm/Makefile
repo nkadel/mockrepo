@@ -1,1 +1,1 @@
-../Makefile.mock9
+../Makefile.mock
