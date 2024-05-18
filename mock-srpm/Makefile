@@ -1,1 +1,1 @@
-../Makefile.mock
+../Makefile.epel

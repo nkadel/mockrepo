@@ -10,26 +10,6 @@
 REPOBASE=file://$(PWD)
 #REPOBASE=http://localhost
 
-MOCKPKGS+=python-backoff-srpm
-MOCKPKGS+=python-flit-srpm
-MOCKPKGS+=python-flit-scm-srpm
-MOCKPKGS+=python-pyroute2-srpm
-MOCKPKGS+=python-templated-dictionary-srpm
-
-# Build for Amazon Linux 2023
-MOCKPKGS+=distribution-gpg-keys-srpm
-MOCKPKGS+=gtk2-srpm
-MOCKPKGS+=podman-srpm
-MOCKPKGS+=procenv-srpm
-MOCKPKGS+=util-linux-srpm
-
-# Needs util-linux and distribution-gpg-keys ang gtk2-devel
-MOCKPKGS+=usermode-srpm
-
-# Needs flit-scm
-MOCKPKGS+=python-exceptiongroup-srpm
-# Needs exceptiongroup
-MOCKPKGS+=python-setuptools_scm-srpm
 # Needs exceptiongroup
 MOCKPKGS+=mock-core-configs-srpm
 # Needs backoff and exceptiongroup
@@ -43,14 +23,12 @@ REPOS+=mockrepo/amazon/2023
 REPODIRS := $(patsubst %,%/x86_64/repodata,$(REPOS)) $(patsubst %,%/SRPMS/repodata,$(REPOS))
 
 # No local dependencies at build time
-CFGS+=mockrepo-7-x86_64.cfg
 CFGS+=mockrepo-8-x86_64.cfg
 CFGS+=mockrepo-9-x86_64.cfg
 CFGS+=mockrepo-f40-x86_64.cfg
 CFGS+=mockrepo-amz2023-x86_64.cfg
 
 # Link from /etc/mock
-MOCKCFGS+=centos+epel-7-x86_64.cfg
 MOCKCFGS+=centos-stream+epel-8-x86_64.cfg
 MOCKCFGS+=centos-stream+epel-9-x86_64.cfg
 MOCKCFGS+=fedora-40-x86_64.cfg
@@ -100,23 +78,6 @@ $(MOCKCFGS)::
 	@echo Generating $@ from /etc/mock/$@
 	@echo "include('/etc/mock/$@')" | tee $@
 	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
-
-mockrepo-7-x86_64.cfg: /etc/mock/centos+epel-7-x86_64.cfg
-	@echo Generating $@ from $?
-	@echo "include('$?')" | tee $@
-	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
-	@echo "config_opts['root'] = 'mockrepo-{{ releasever }}-{{ target_arch }}'" >> $@
-	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
-	@echo '[mockrepo]' >> $@
-	@echo 'name=mockrepo' >> $@
-	@echo 'enabled=1' >> $@
-	@echo 'baseurl=file://$(PWD)/mockrepo/el/7/x86_64/' >> $@
-	@echo 'skip_if_unavailable=False' >> $@
-	@echo 'metadata_expire=1' >> $@
-	@echo 'gpgcheck=0' >> $@
-	@echo 'priority=5' >> $@
-	@echo '#cost=2000' >> $@
-	@echo '"""' >> $@
 
 mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 	@echo Generating $@ from $?
