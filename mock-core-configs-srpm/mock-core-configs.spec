@@ -1,5 +1,8 @@
+# or specialized package suffix
+%global versionsuffix -2
+
 Name:       mock-core-configs
-Version:    40.4
+Version:    40.5
 Release:    0.1%{?dist}
 Summary:    Mock core config files basic chroots
 
@@ -10,7 +13,8 @@ URL:        https://github.com/rpm-software-management/mock/
 # cd mock/mock-core-configs
 # git reset --hard %%{name}-%%{version}
 # tito build --tgz
-Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}-1/%{name}-%{version}.tar.gz
+Source:     https://github.com/rpm-software-management/mock/releases/download/%{name}-%{version}%{?versionsuffix}/%{name}-%{version}%{?versionsuffix}.tar.gz
+#Source:     https://github.com/rpm-software-management/mock/archive/refs/tags/%%{name}-%%{version}%%{?versionsuffix}.zip
 BuildArch:  noarch
 
 # The mock.rpm requires this.  Other packages may provide this if they tend to
@@ -39,12 +43,13 @@ Rocky Linux and various other specific or combined chroots.
 
 
 %prep
-%setup -q
+%setup -q -n %{name}-%{version}%{?versionsuffix}
 
 
 %build
 
 %install
+cd mock-core-configs
 mkdir -p %{buildroot}%{_sysusersdir}
 
 mkdir -p %{buildroot}%{_sysconfdir}/mock/eol/templates
@@ -133,8 +138,8 @@ else
 fi
 :
 
-%files -f %{name}.cfgs
-%license COPYING
+%files -f mock-core-configs/%{name}.cfgs
+%license mock-core-configs/COPYING
 %ghost %config(noreplace,missingok) %{_sysconfdir}/mock/default.cfg
 
 %changelog
