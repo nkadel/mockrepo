@@ -17,6 +17,7 @@ MOCKPKGS+=mock-srpm
 
 REPOS+=mockrepo/el/8
 REPOS+=mockrepo/el/9
+REPOS+=mockrepo/el/10
 REPOS+=mockrepo/fedora/40
 REPOS+=mockrepo/amazon/2023
 
@@ -25,12 +26,14 @@ REPODIRS := $(patsubst %,%/x86_64/repodata,$(REPOS)) $(patsubst %,%/SRPMS/repoda
 # No local dependencies at build time
 CFGS+=mockrepo-8-x86_64.cfg
 CFGS+=mockrepo-9-x86_64.cfg
+CFGS+=mockrepo-10-x86_64.cfg
 CFGS+=mockrepo-f40-x86_64.cfg
 CFGS+=mockrepo-amz2023-x86_64.cfg
 
 # Link from /etc/mock
-MOCKCFGS+=centos-stream+epel-8-x86_64.cfg
-MOCKCFGS+=centos-stream+epel-9-x86_64.cfg
+MOCKCFGS+=alma+epel-8-x86_64.cfg
+MOCKCFGS+=alma+epel-9-x86_64.cfg
+MOCKCFGS+=alma+epel-10-x86_64.cfg
 MOCKCFGS+=fedora-40-x86_64.cfg
 MOCKCFGS+=amazonlinux-2023-x86_64.cfg
 
@@ -79,7 +82,7 @@ $(MOCKCFGS)::
 	@echo "include('/etc/mock/$@')" | tee $@
 	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
 
-mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
+mockrepo-8-x86_64.cfg: /etc/mock/alma+epel-8-x86_64.cfg
 	@echo Generating $@ from $?
 	@echo "include('$?')" | tee $@
 	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
@@ -97,7 +100,7 @@ mockrepo-8-x86_64.cfg: /etc/mock/centos-stream+epel-8-x86_64.cfg
 	@echo '#cost=2000' >> $@
 	@echo '"""' >> $@
 
-mockrepo-9-x86_64.cfg: /etc/mock/centos-stream+epel-9-x86_64.cfg
+mockrepo-9-x86_64.cfg: /etc/mock/alma+epel-9-x86_64.cfg
 	@echo Generating $@ from $?
 	@echo "include('$?')" | tee $@
 	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
@@ -107,6 +110,23 @@ mockrepo-9-x86_64.cfg: /etc/mock/centos-stream+epel-9-x86_64.cfg
 	@echo 'name=mockrepo' >> $@
 	@echo 'enabled=1' >> $@
 	@echo 'baseurl=file://$(PWD)/mockrepo/el/9/x86_64/' >> $@
+	@echo 'skip_if_unavailable=False' >> $@
+	@echo 'metadata_expire=1' >> $@
+	@echo 'gpgcheck=0' >> $@
+	@echo 'priority=5' >> $@
+	@echo '#cost=2000' >> $@
+	@echo '"""' >> $@
+
+mockrepo-10-x86_64.cfg: /etc/mock/alma+epel-10-x86_64.cfg
+	@echo Generating $@ from $?
+	@echo "include('$?')" | tee $@
+	@echo "config_opts['dnf_vars'] = { 'best': 'False' }" | tee -a $@
+	@echo "config_opts['root'] = 'mockrepo-{{ releasever }}-{{ target_arch }}'" >> $@
+	@echo "config_opts['dnf.conf'] += \"\"\"" >> $@
+	@echo '[mockrepo]' >> $@
+	@echo 'name=mockrepo' >> $@
+	@echo 'enabled=1' >> $@
+	@echo 'baseurl=file://$(PWD)/mockrepo/el/10/x86_64/' >> $@
 	@echo 'skip_if_unavailable=False' >> $@
 	@echo 'metadata_expire=1' >> $@
 	@echo 'gpgcheck=0' >> $@
