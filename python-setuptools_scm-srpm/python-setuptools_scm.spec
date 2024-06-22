@@ -40,6 +40,7 @@ BuildRequires:  mercurial
 # Manually listed test dependencies from tox.ini, to avoid pulling tox into RHEL
 BuildRequires:  python%{python3_pkgversion}dist(pytest)
 BuildRequires:  python%{python3_pkgversion}dist(setuptools) >= 45
+BuildRequires:  python%{python3_pkgversion}dist(typing-extensions)
 BuildRequires:  python%{python3_pkgversion}dist(wheel)
 # build is used only for one test, we don't need it in RHEL just for that
 %if %{undefined rhel}
