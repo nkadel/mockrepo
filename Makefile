@@ -36,7 +36,7 @@ MOCKCFGS+=amazonlinux-2023-x86_64.cfg
 MOCKPKGS+=pytest-srpm
 
 # Requires pytest on RHEL 10
-MOCKPKGS+=python-setuptools_scm
+MOCKPKGS+=python-setuptools_scm-srpm
 
 # Needs exceptiongroup
 MOCKPKGS+=mock-core-configs-srpm
