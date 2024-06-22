@@ -1,0 +1,48 @@
+diff -up pytest-7.1.3/testing/test_debugging.py.orig pytest-7.1.3/testing/test_debugging.py
+--- pytest-7.1.3/testing/test_debugging.py.orig	2022-09-02 13:12:55.000000000 +0200
++++ pytest-7.1.3/testing/test_debugging.py	2022-09-05 16:40:54.921946205 +0200
+@@ -353,7 +353,7 @@ class TestPDB:
+         result = pytester.runpytest_subprocess("--pdb", ".")
+         result.stdout.fnmatch_lines(["-> import unknown"])
+ 
+-    @pytest.mark.xfail(reason="#10042")
++    @pytest.mark.xfail(reason="#10042", strict=False)
+     def test_pdb_interaction_capturing_simple(self, pytester: Pytester) -> None:
+         p1 = pytester.makepyfile(
+             """
+@@ -522,7 +522,7 @@ class TestPDB:
+         assert "BdbQuit" not in rest
+         assert "UNEXPECTED EXCEPTION" not in rest
+ 
+-    @pytest.mark.xfail(reason="#10042")
++    @pytest.mark.xfail(reason="#10042", strict=False)
+     def test_pdb_interaction_capturing_twice(self, pytester: Pytester) -> None:
+         p1 = pytester.makepyfile(
+             """
+@@ -558,7 +558,7 @@ class TestPDB:
+         assert "1 failed" in rest
+         self.flush(child)
+ 
+-    @pytest.mark.xfail(reason="#10042")
++    @pytest.mark.xfail(reason="#10042", strict=False)
+     def test_pdb_with_injected_do_debug(self, pytester: Pytester) -> None:
+         """Simulates pdbpp, which injects Pdb into do_debug, and uses
+         self.__class__ in do_continue.
+@@ -1003,7 +1003,7 @@ class TestDebuggingBreakpoints:
+         assert "reading from stdin while output" not in rest
+         TestPDB.flush(child)
+ 
+-    @pytest.mark.xfail(reason="#10042")
++    @pytest.mark.xfail(reason="#10042",strict=False)
+     def test_pdb_not_altered(self, pytester: Pytester) -> None:
+         p1 = pytester.makepyfile(
+             """
+@@ -1163,7 +1163,7 @@ def test_quit_with_swallowed_SystemExit(
+ 
+ 
+ @pytest.mark.parametrize("fixture", ("capfd", "capsys"))
+-@pytest.mark.xfail(reason="#10042")
++@pytest.mark.xfail(reason="#10042", strict=False)
+ def test_pdb_suspends_fixture_capturing(pytester: Pytester, fixture: str) -> None:
+     """Using "-s" with pytest should suspend/resume fixture capturing."""
+     p1 = pytester.makepyfile(

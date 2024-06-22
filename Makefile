@@ -10,6 +10,9 @@
 REPOBASE=file://$(PWD)
 #REPOBASE=http://localhost
 
+# Required for EL10
+MOCKPKGS+=pytest-srpm
+
 # Needs exceptiongroup
 MOCKPKGS+=mock-core-configs-srpm
 # Needs backoff and exceptiongroup
