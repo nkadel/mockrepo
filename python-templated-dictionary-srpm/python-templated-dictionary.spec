@@ -1,5 +1,5 @@
 %global pypi_name templated-dictionary
-%global pype_srcname python-templated-dictionary
+%global pypi_srcname python-templated-dictionary
 %global versionsuffix -1
 
 Name:       python-%{pypi_name}
@@ -38,7 +38,8 @@ Summary: %{summary}
 
 
 %prep
-%setup -q
+# Yes, this tag content layout is deranged
+%setup -q -n %{pypi_name}-%{pypi_srcname}-%{version}%{?versionsuffix}
 
 
 %build
