@@ -1,0 +1,56 @@
+commit c08cd149e272e23c2dd77564bd5a2a8ed97098f7
+Author: Sergei Trofimovich <slyich@gmail.com>
+Date:   Sat Dec 9 06:36:34 2023 +0000
+
+    tests: fix test failures on upcoming `gcc-14` (#671)
+    
+    Upcoming `gcc-14` enabled a few warnings into errors, like
+    `-Wint-conversion`. This caused `shadow` build to fail as:
+    
+        src/extended/extended.c:13:9: error:
+          initialization of ‘int’ from ‘void *’ makes integer from pointer
+            without a cast [-Wint-conversion]
+           13 |         NULL,
+              |         ^~~~
+    
+    The change fixes `int ml_flags;` to take `int` instead of pointer.
+
+diff --git a/tests/masonry/builders/fixtures/extended/extended/extended.c b/tests/masonry/builders/fixtures/extended/extended/extended.c
+index 25a028e..8980ea3 100644
+--- a/tests/masonry/builders/fixtures/extended/extended/extended.c
++++ b/tests/masonry/builders/fixtures/extended/extended/extended.c
+@@ -10,7 +10,7 @@ static PyMethodDef module_methods[] = {
+     {
+         "hello",
+         (PyCFunction) hello,
+-        NULL,
++        0,
+         PyDoc_STR("Say hello.")
+     },
+     {NULL}
+diff --git a/tests/masonry/builders/fixtures/extended_with_no_setup/extended/extended.c b/tests/masonry/builders/fixtures/extended_with_no_setup/extended/extended.c
+index 25a028e..8980ea3 100644
+--- a/tests/masonry/builders/fixtures/extended_with_no_setup/extended/extended.c
++++ b/tests/masonry/builders/fixtures/extended_with_no_setup/extended/extended.c
+@@ -10,7 +10,7 @@ static PyMethodDef module_methods[] = {
+     {
+         "hello",
+         (PyCFunction) hello,
+-        NULL,
++        0,
+         PyDoc_STR("Say hello.")
+     },
+     {NULL}
+diff --git a/tests/masonry/builders/fixtures/src_extended/src/extended/extended.c b/tests/masonry/builders/fixtures/src_extended/src/extended/extended.c
+index 25a028e..8980ea3 100644
+--- a/tests/masonry/builders/fixtures/src_extended/src/extended/extended.c
++++ b/tests/masonry/builders/fixtures/src_extended/src/extended/extended.c
+@@ -10,7 +10,7 @@ static PyMethodDef module_methods[] = {
+     {
+         "hello",
+         (PyCFunction) hello,
+-        NULL,
++        0,
+         PyDoc_STR("Say hello.")
+     },
+     {NULL}

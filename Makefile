@@ -32,6 +32,9 @@ MOCKCFGS+=alma+epel-10-x86_64.cfg
 MOCKCFGS+=fedora-40-x86_64.cfg
 MOCKCFGS+=amazonlinux-2023-x86_64.cfg
 
+# Needed for RHEL 10
+MOCKPKGS+=python-poetry-core-srpm
+
 # Needs exceptiongroup
 MOCKPKGS+=mock-core-configs-srpm
 # Needs backoff and exceptiongroup
