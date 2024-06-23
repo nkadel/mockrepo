@@ -32,12 +32,14 @@ MOCKCFGS+=alma+epel-10-x86_64.cfg
 MOCKCFGS+=fedora-40-x86_64.cfg
 MOCKCFGS+=amazonlinux-2023-x86_64.cfg
 
+# Below required for RHEL 10
+MOCKPKGS+=distribution-gpg-keys-srpm
 MOCKPKGS+=python-fastjsonschema-srpm
-# Needed for RHEL 10
-# Rquires fastjsonschema
+# Requires fastjsonschema
 MOCKPKGS+=python-poetry-core-srpm
 MOCKPKGS+=python-pyroute2-srpm
 MOCKPKGS+=python-rpmautospec-core-srpm
+MOCKPKGS+=python-templated-dictionary-srpm
 
 # Requires exceptiongroup on RHEL 9
 MOCKPKGS+=mock-core-configs-srpm
