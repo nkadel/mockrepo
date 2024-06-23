@@ -32,12 +32,6 @@ MOCKCFGS+=alma+epel-10-x86_64.cfg
 MOCKCFGS+=fedora-40-x86_64.cfg
 MOCKCFGS+=amazonlinux-2023-x86_64.cfg
 
-# Required for EL10
-MOCKPKGS+=pytest-srpm
-
-# Requires pytest on RHEL 10
-MOCKPKGS+=python-setuptools_scm-srpm
-
 # Needs exceptiongroup
 MOCKPKGS+=mock-core-configs-srpm
 # Needs backoff and exceptiongroup
