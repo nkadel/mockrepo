@@ -1,11 +1,6 @@
-%global srcname templated-dictionary
-%global python3_pkgversion 3
+%global pypi_name templated-dictionary
 
-%if 0%{?rhel} == 7
-%global python3_pkgversion 36
-%endif
-
-Name:       python-%{srcname}
+Name:       python-%{pypi_name}
 Version:    1.4
 #Release:    1%%{?dist}
 Release:    0.1%{?dist}
@@ -17,7 +12,8 @@ URL:        https://github.com/xsuchy/templated-dictionary
 # Source is created by:
 # git clone https://github.com/xsuchy/templated-dictionary && cd templated-dictionary
 # tito build --tgz --tag %%name-%%version-%%release
-Source0:    %name-%version.tar.gz
+#Source0:    %name-%version.tar.gz
+Source0:    %{pypi_source}
 
 BuildArch: noarch
 
@@ -31,10 +27,10 @@ Dictionary where __getitem__() is run through Jinja2 template.
 %description %_description
 
 
-%package -n python3-%{srcname}
+%package -n python%{python3_pkgversion}-%{pypi_name}
 Summary: %{summary}
-%{?py_provides:%py_provides python3-%{srcname}}
-%description -n python3-%{srcname} %_description
+%{?py_provides:%py_provides python3-%{pypi_name}}
+%description -n python3-%{pypi_name} %_description
 
 
 %prep
@@ -48,7 +44,7 @@ version="%version" %py3_build
 version=%version %py3_install
 
 
-%files -n python3-%{srcname}
+%files -n python%{python3_pkgversion}-%{pypi_name}
 %license LICENSE
 %{python3_sitelib}/templated_dictionary-*.egg-info/
 %{python3_sitelib}/templated_dictionary/
