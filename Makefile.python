@@ -12,11 +12,11 @@ RSYNCOPTS=-a --no-owner --no-group
 
 # "mock" configurations to build with, activate only as needed
 # Some RHEL dependencies are supplied locally in repo
-#OCKCFGS+=mockrepo-8-x86_64
-MOCKCFGS+=mockrepo-9-x86_64
-MOCKCFGS+=mockrepo-10-x86_64
-#MOCKCFGS+=mockrepo-f40-x86_64
-#MOCKCFGS+=mockrepo-amz2023-x86_64
+#OCKS+=mockrepo-8-x86_64
+MOCKS+=mockrepo-9-x86_64
+MOCKS+=mockrepo-10-x86_64
+#MOCKS+=mockrepo-f40-x86_64
+#MOCKS+=mockrepo-amz2023-x86_64
 
 # Local yum compatible RPM repository
 REPOBASEDIR="`/bin/pwd | xargs dirname`/mockrepo"
