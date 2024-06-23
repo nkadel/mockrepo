@@ -1,5 +1,8 @@
+%global versionsuffix -1
+
+
 Name:		distribution-gpg-keys
-Version:	1.102
+Version:	1.104
 #Release:	1%%{?dist}
 Release:	0.1%{?dist}
 Summary:	GPG keys of various Linux distributions
@@ -10,7 +13,8 @@ URL:		https://github.com/xsuchy/distribution-gpg-keys
 # git clone git://github.com/xsuchy/distribution-gpg-keys.git
 # cd distribution-gpg-keys
 # tito build --tgz
-Source0:	%{name}-%{version}.tar.gz
+#Source0:	%%{name}-%%{version}.tar.gz
+Source0:        https://github.com/rpm-software-management/%{name}/archive/refs/tags/%{name}-%{version}%{?versionsuffix}.zip
 BuildArch:	noarch
 
 %if 0%{?fedora} > 0
