@@ -37,6 +37,7 @@ MOCKPKGS+=python-fastjsonschema-srpm
 # Rquires fastjsonschema
 MOCKPKGS+=python-poetry-core-srpm
 MOCKPKGS+=python-pyroute2-srpm
+MOCKPKGS+=python-rpmautospec-core-srpm
 
 # Requires exceptiongroup on RHEL 9
 MOCKPKGS+=mock-core-configs-srpm
