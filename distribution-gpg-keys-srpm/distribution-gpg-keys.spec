@@ -35,17 +35,14 @@ BuildArch: noarch
 GPG keys used by Copr projects.
 
 %prep
-%setup -q
-
+%setup -q -n %{name}-%{name}-%{version}%{?versionsuffix}
 
 %build
 #nothing to do here
 
-
 %install
 mkdir -p %{buildroot}%{_datadir}/%{name}/
 cp -a keys/* %{buildroot}%{_datadir}/%{name}/
-
 
 %files
 %license LICENSE
