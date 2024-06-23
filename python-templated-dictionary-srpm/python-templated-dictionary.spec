@@ -1,4 +1,6 @@
 %global pypi_name templated-dictionary
+%global pype_srcname python-templated-dictionary
+%global versionsuffix -1
 
 Name:       python-%{pypi_name}
 Version:    1.4
@@ -12,8 +14,10 @@ URL:        https://github.com/xsuchy/templated-dictionary
 # Source is created by:
 # git clone https://github.com/xsuchy/templated-dictionary && cd templated-dictionary
 # tito build --tgz --tag %%name-%%version-%%release
+
 #Source0:    %name-%version.tar.gz
-Source0:    %{pypi_source}
+#Source0:    %%{pypi_source}
+Source:     https://github.com/xsuchy/%{pypi_name}/archive/refs/tags/%{pypi_srcname}-%{version}%{?versionsuffix}.zip
 
 BuildArch: noarch
 
