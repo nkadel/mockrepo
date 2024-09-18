@@ -8,7 +8,7 @@ LANG=C
 #MOCKS+=mockrepo-f40-x86_64
 MOCKS+=mockrepo-9-x86_64
 MOCKS+=mockrepo-8-x86_64
-#MOCKS+=mockrepo-amz2023-x86_64
+###MOCKS+=mockrepo-amz2023-x86_64
 
 MOCKCFGS+=$(MOCKS)
 

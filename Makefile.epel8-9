@@ -9,7 +9,7 @@ LANG=C
 MOCKS+=centos-stream+epel-8-x86_64
 MOCKS+=centos-stream+epel-9-x86_64
 #MOCKS+=fedora-40-x86_64
-#MOCKS+=amazon-2023-x86_64
+###MOCKS+=amazon-2023-x86_64
 
 #REPOBASEDIR=/var/www/linux/mockrepo
 REPOBASEDIR:=`/bin/pwd`/../mockrepo
