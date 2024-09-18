@@ -13,8 +13,13 @@ BuildArch:      noarch
 
 BuildRequires:  python%{python3_pkgversion}-devel
 BuildRequires:  python%{python3_pkgversion}-tomli
-BuildRequires:  python%{python3_pkgversion}-exceptiongroup
+#BuildRequires:  python%{python3_pkgversion}-exceptiongroup
 BuildRequires:  pyproject-rpm-macros
+
+# Ensure both provides for compatibility
+%py_provides    python%{python3_pkgversion}-setuptools_scm
+%py_provides    python%{python3_pkgversion}-setuptools-scm
+
 %if %{with tests}
 BuildRequires:  git-core
 BuildRequires:  mercurial
