@@ -7,13 +7,13 @@ LANG=C
 
 #MOCKCFGS+=mockrepo-8-x86_64
 MOCKCFGS+=mockrepo-9-x86_64
-#MOCKCFGS+=mockrepo-f39-x86_64
+#MOCKCFGS+=mockrepo-f40-x86_64
 #MOCKCFGS+=mockrepo-amz2023-x86_64
 
 #
 #MOCKS+=centos-stream+epel-8-x86_64
 MOCKS+=centos-stream+epel-9-x86_64
-#MOCKS+=fedora-39-x86_64
+#MOCKS+=fedora-40-x86_64
 #MOCKS+=amazon-2023-x86_64
 
 REPOBASEDIR:=`/bin/pwd`/../mockrepo
@@ -65,13 +65,12 @@ install:: $(MOCKS)
 	@for repo in $(MOCKS); do \
 	    echo Installing $$repo; \
 	    case $$repo in \
-		*-7-x86_64) yumrelease=el/7; yumarch=x86_64; ;; \
 		*-8-x86_64) yumrelease=el/8; yumarch=x86_64; ;; \
 		*-9-x86_64) yumrelease=el/9; yumarch=x86_64; ;; \
-		*-39-x86_64) yumrelease=fedora/39; yumarch=x86_64; ;; \
-		*-f39-x86_64) yumrelease=fedora/39; yumarch=x86_64; ;; \
-		*-amz2023-x86_64) yumrelease=amazon/39; yumarch=x86_64; ;; \
-		*-2023-x86_64) yumrelease=amazon/39; yumarch=x86_64; ;; \
+		*-40-x86_64) yumrelease=fedora/40; yumarch=x86_64; ;; \
+		*-f40-x86_64) yumrelease=fedora/40; yumarch=x86_64; ;; \
+		*-amz2023-x86_64) yumrelease=amazon/40; yumarch=x86_64; ;; \
+		*-2023-x86_64) yumrelease=amazon/40; yumarch=x86_64; ;; \
 		*) echo "Unrecognized release for $$repo, exiting" >&2; exit 1; ;; \
 	    esac; \
 	    rpmdir=$(REPOBASEDIR)/$$yumrelease/$$yumarch; \
