@@ -28,11 +28,11 @@ BuildArch:      noarch
 
 %description %_description
 
-%package -n python3-flit-scm
+%package -n python%{python3_pkgversion}-flit-scm
 Summary:        %{summary}
-BuildRequires:  python3-devel
+BuildRequires:  python%{python3_pkgversion}-devel
 
-%description -n python3-flit-scm %_description
+%description -n python%{python3_pkgversion}-flit-scm %_description
 
 %prep
 %autosetup -n flit_scm-%{version}
@@ -56,7 +56,7 @@ BuildRequires:  python3-devel
 %check
 %pyproject_check_import
 
-%files -n python3-flit-scm -f %{pyproject_files}
+%files -n python%{python3_pkgversion}-flit-scm -f %{pyproject_files}
 %doc README.md
 %license LICENSE
 
