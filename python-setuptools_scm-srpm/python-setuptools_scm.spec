@@ -18,7 +18,7 @@ BuildRequires:  pyproject-rpm-macros
 
 # Ensure both provides for compatibility
 %py_provides    python%{python3_pkgversion}-setuptools_scm
-%py_provides    python%{python3_pkgversion}-setuptools-scm
+
 
 %if %{with tests}
 BuildRequires:  git-core
