@@ -11,7 +11,7 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 5.2
+Version: 5.6
 #Release: 1%%{?dist}
 Release: 0.1%{?dist}
 License: GPL-2.0-or-later
@@ -66,6 +66,7 @@ Requires: python%{python3_pkgversion}-templated-dictionary
 Requires: python%{python3_pkgversion}-backoff
 BuildRequires: python%{python3_pkgversion}-backoff
 BuildRequires: python%{python3_pkgversion}-devel
+BuildRequires: python%{python3_pkgversion}-rpmautospec-core
 %if %{with lint}
 BuildRequires: python%{python3_pkgversion}-pylint
 %endif
