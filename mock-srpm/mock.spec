@@ -11,7 +11,7 @@
 
 Summary: Builds packages inside chroots
 Name: mock
-Version: 5.7
+Version: 5.8
 #Release: 1%%{?dist}
 Release: 0.1%{?dist}
 License: GPL-2.0-or-later
