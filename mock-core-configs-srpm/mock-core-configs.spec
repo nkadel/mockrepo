@@ -1,5 +1,5 @@
 Name:       mock-core-configs
-Version:    41.3
+Version:    41.4
 Release:    0.1%{?dist}
 Summary:    Mock core config files basic chroots
 
